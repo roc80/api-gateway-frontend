@@ -1,6 +1,3 @@
-import { Footer } from '@/components';
-import { login } from '@/services/ant-design-pro/api';
-import { getFakeCaptcha } from '@/services/ant-design-pro/login';
 import {
   AlipayCircleOutlined,
   LockOutlined,
@@ -20,7 +17,11 @@ import { Alert, App, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
+import { Footer } from '@/components';
+import { login } from '@/services/ant-design-pro/api';
+import { getFakeCaptcha } from '@/services/ant-design-pro/login';
 import Settings from '../../../../config/defaultSettings';
+
 const useStyles = createStyles(({ token }) => {
   return {
     action: {
@@ -56,20 +57,6 @@ const useStyles = createStyles(({ token }) => {
     },
   };
 });
-const ActionIcons = () => {
-  const { styles } = useStyles();
-  return (
-    <>
-      <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
-      <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={styles.action} />
-      <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} />
-    </>
-  );
-};
-const Lang = () => {
-  const { styles } = useStyles();
-  return;
-};
 const LoginMessage: React.FC<{
   content: string;
 }> = ({ content }) => {
@@ -134,7 +121,6 @@ const Login: React.FC = () => {
           {Settings.title && ` - ${Settings.title}`}
         </title>
       </Helmet>
-      <Lang />
       <div
         style={{
           flex: '1',
@@ -147,12 +133,11 @@ const Login: React.FC = () => {
             maxWidth: '75vw',
           }}
           logo={<img alt="logo" src="/logo.svg" />}
-          title="Ant Design"
-          subTitle={'Ant Design 是西湖区最具影响力的 Web 设计规范'}
+          title="API Gateway"
+          subTitle={'API Gateway 是一个 API 网关，用于管理 API 的访问和流量。'}
           initialValues={{
             autoLogin: true,
           }}
-          actions={['其他登录方式 :', <ActionIcons key="icons" />]}
           onFinish={async (values) => {
             await handleSubmit(values as API.LoginParams);
           }}
@@ -209,7 +194,9 @@ const Login: React.FC = () => {
             </>
           )}
 
-          {status === 'error' && loginType === 'mobile' && <LoginMessage content="验证码错误" />}
+          {status === 'error' && loginType === 'mobile' && (
+            <LoginMessage content="验证码错误" />
+          )}
           {type === 'mobile' && (
             <>
               <ProFormText

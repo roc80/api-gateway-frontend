@@ -1,10 +1,11 @@
 // https://umijs.org/config/
 
-import { defineConfig } from '@umijs/max';
 import { join } from 'node:path';
+import { defineConfig } from '@umijs/max';
 import defaultSettings from './defaultSettings';
 import proxy from './proxy';
 import routes from './routes';
+
 const { REACT_APP_ENV = 'dev' } = process.env;
 
 /**
@@ -78,7 +79,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: 'Ant Design Pro',
+  title: 'API Gateway',
   layout: {
     locale: true,
     ...defaultSettings,
@@ -151,7 +152,8 @@ export default defineConfig({
     },
     {
       requestLibPath: "import { request } from '@umijs/max'",
-      schemaPath: 'https://gw.alipayobjects.com/os/antfincdn/CA1dOm%2631B/openapi.json',
+      schemaPath:
+        'https://gw.alipayobjects.com/os/antfincdn/CA1dOm%2631B/openapi.json',
       projectName: 'swagger',
     },
   ],
