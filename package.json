@@ -31,7 +31,9 @@
     "test:update": "npm run jest -- -u",
     "tsc": "tsc --noEmit"
   },
-  "browserslist": ["defaults"],
+  "browserslist": [
+    "defaults"
+  ],
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
     "@ant-design/pro-components": "^2.7.19",
@@ -57,8 +59,13 @@
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@types/react-helmet": "^6.1.11",
-    "@umijs/max": "^4.3.24",
+    "@umijs/max": "^4.4.12",
     "cross-env": "^7.0.3",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "express": "^4.21.1",
     "gh-pages": "^6.1.1",
     "husky": "^9.1.7",
@@ -66,10 +73,13 @@
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^16.1.2",
     "mockjs": "^1.1.0",
+    "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3",
     "umi-presets-pro": "^2.0.3",
     "umi-serve": "^1.9.11"
   },
-  "engines": { "node": ">=20.0.0" }
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }
