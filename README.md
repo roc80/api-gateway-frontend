@@ -1,4 +1,8 @@
-# API Gateway
+<div align="center">
+  
+[![wakatime](https://wakatime.com/badge/github/roc80/api-gateway-frontend.svg)](https://wakatime.com/badge/github/roc80/api-gateway-frontend)
+
+</div>
 
 ## Star History
 
