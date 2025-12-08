@@ -1,16 +1,26 @@
-import {LinkOutlined} from '@ant-design/icons';
-import type {Settings as LayoutSettings} from '@ant-design/pro-components';
-import {SettingDrawer} from '@ant-design/pro-components';
-import {AvatarDropdown, AvatarName, Footer, Question} from '@/components';
-import {currentUser as queryCurrentUser} from '@/services/api-gateway/userRolePermissionController';
+import { LinkOutlined } from '@ant-design/icons';
+import type { Settings as LayoutSettings } from '@ant-design/pro-components';
+import { SettingDrawer } from '@ant-design/pro-components';
+import { AvatarDropdown, AvatarName, Footer } from '@/components';
+import { currentUser as queryCurrentUser } from '@/services/api-gateway/userRolePermissionController';
 import '@ant-design/v5-patch-for-react-19';
-import type {RequestConfig, RunTimeLayoutConfig} from '@umijs/max';
-import {history, Link} from '@umijs/max';
+import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
+import { history, Link } from '@umijs/max';
 import defaultSettings from '../config/defaultSettings';
-import {errorConfig} from './requestErrorConfig';
+import { envConfig } from '../config/environments';
+import { errorConfig } from './requestErrorConfig';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
+
+// 在开发环境输出环境配置信息
+console.log('当前环境配置:', {
+  NODE_ENV: process.env.NODE_ENV,
+  UMI_ENV: process.env.UMI_ENV,
+  baseURL: envConfig.baseURL,
+  enableMock: envConfig.enableMock,
+  logLevel: envConfig.logLevel,
+});
 
 /**
  * @see https://umijs.org/docs/api/runtime-config#getinitialstate
@@ -23,16 +33,34 @@ export async function getInitialState(): Promise<{
 }> {
   const fetchUserInfo = async () => {
     try {
-      return await queryCurrentUser({
+      console.log('正在获取当前用户信息...');
+      const userInfo = await queryCurrentUser({
         skipErrorHandler: true,
       });
-    } catch (_error) {
-      history.push(loginPath);
+      console.log('获取用户信息成功:', userInfo);
+      return userInfo;
+    } catch (error: any) {
+      console.warn('获取用户信息失败:', error);
+
+      // 如果是 401 错误，说明未认证或 token 失效
+      if (error?.response?.status === 401) {
+        console.log('用户未认证或登录已过期，跳转到登录页面');
+        // 只有当前不在登录页面时才跳转
+        if (history.location.pathname !== loginPath) {
+          history.push(loginPath);
+        }
+      } else {
+        // 其他错误，也尝试跳转到登录页面
+        console.log('其他认证错误，跳转到登录页面');
+        if (history.location.pathname !== loginPath) {
+          history.push(loginPath);
+        }
+      }
+      return undefined;
     }
-    return undefined;
   };
   // 如果不是登录页面，执行
-  const {location} = history;
+  const { location } = history;
   if (
     ![loginPath, '/user/register', '/user/register-result'].includes(
       location.pathname,
@@ -53,15 +81,14 @@ export async function getInitialState(): Promise<{
 
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({
-                                              initialState,
-                                              setInitialState,
-                                            }) => {
+  initialState,
+  setInitialState,
+}) => {
   return {
-    actionsRender: () => [<Question key="doc"/>],
     avatarProps: {
       // todo@lp
       src: 'https://rocli.cn/favicon.ico',
-      title: <AvatarName/>,
+      title: <AvatarName />,
       render: (_, avatarChildren) => {
         return <AvatarDropdown>{avatarChildren}</AvatarDropdown>;
       },
@@ -69,9 +96,9 @@ export const layout: RunTimeLayoutConfig = ({
     waterMarkProps: {
       content: initialState?.currentUser?.username,
     },
-    footerRender: () => <Footer/>,
+    footerRender: () => <Footer />,
     onPageChange: () => {
-      const {location} = history;
+      const { location } = history;
       // 如果没有登录，重定向到 login
       if (!initialState?.currentUser && location.pathname !== loginPath) {
         history.push(loginPath);
@@ -99,11 +126,11 @@ export const layout: RunTimeLayoutConfig = ({
     ],
     links: isDev
       ? [
-        <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-          <LinkOutlined/>
-          <span>OpenAPI 文档</span>
-        </Link>,
-      ]
+          <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
+            <LinkOutlined />
+            <span>OpenAPI 文档</span>
+          </Link>,
+        ]
       : [],
     menuHeaderRender: undefined,
     // 自定义 403 页面
@@ -140,6 +167,8 @@ export const layout: RunTimeLayoutConfig = ({
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const request: RequestConfig = {
-  baseURL: 'http://localhost:8080/api',
+  // 从环境配置中读取 baseURL
+  baseURL: envConfig.baseURL,
+  // 合并错误配置
   ...errorConfig,
 };

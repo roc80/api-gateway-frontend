@@ -89,8 +89,12 @@ export const errorConfig: RequestConfig = {
   requestInterceptors: [
     (config: RequestOptions) => {
       // 拦截请求配置，进行个性化处理。
-      const url = config?.url?.concat('?token=123');
-      return { ...config, url };
+      // 移除硬编码的 token，让浏览器自动处理 cookie
+      // 添加 withCredentials 支持，确保浏览器发送和接收 cookies
+      return {
+        ...config,
+        withCredentials: true,
+      };
     },
   ],
 
