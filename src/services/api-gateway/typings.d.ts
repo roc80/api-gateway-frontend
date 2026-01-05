@@ -437,9 +437,8 @@ declare namespace API {
   };
 
   type UserRolePermissionDto = {
-    id?: number;
+    id: number;
     username?: string;
-    password?: string;
     enable?: boolean;
     roles?: RoleDto[];
     createTime?: string;
@@ -447,7 +446,7 @@ declare namespace API {
   };
 
   type UserUpsertDto = {
-    id?: number;
+    id: number;
     username: string;
     password: string;
     enable: boolean;

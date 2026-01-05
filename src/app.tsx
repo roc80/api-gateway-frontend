@@ -10,9 +10,6 @@ import defaultSettings from '../config/defaultSettings';
 import { envConfig } from '../config/environments';
 import { errorConfig } from './requestErrorConfig';
 
-const isDev = process.env.NODE_ENV === 'development';
-const loginPath = '/user/login';
-
 // 在开发环境输出环境配置信息
 console.log('当前环境配置:', {
   NODE_ENV: process.env.NODE_ENV,
@@ -21,6 +18,9 @@ console.log('当前环境配置:', {
   enableMock: envConfig.enableMock,
   logLevel: envConfig.logLevel,
 });
+
+const isDev = process.env.NODE_ENV === 'development';
+const loginPath = '/user/login';
 
 /**
  * @see https://umijs.org/docs/api/runtime-config#getinitialstate
