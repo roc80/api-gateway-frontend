@@ -13,7 +13,7 @@ const environments = {
   // 开发环境
   development: {
     name: 'development',
-    baseURL: process.env.API_BASE_URL || 'http://localhost:8080/api',
+    baseURL: process.env.API_BASE_URL || 'http://localhost:8090/api',
     // 可以添加其他开发环境配置
     enableMock: process.env.ENABLE_MOCK === 'true',
     logLevel: process.env.LOG_LEVEL || 'debug',
