@@ -7,7 +7,7 @@ export async function signIn(
   body: API.SignInDto,
   options?: { [key: string]: any }
 ) {
-  return request<void>("/auth/sign-in", {
+  return request<any>("/auth/sign-in", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -19,7 +19,7 @@ export async function signIn(
 
 /** 此处后端没有提供注释 POST /auth/sign-out */
 export async function signOut(options?: { [key: string]: any }) {
-  return request<void>("/auth/sign-out", {
+  return request<any>("/auth/sign-out", {
     method: "POST",
     ...(options || {}),
   });
@@ -30,7 +30,7 @@ export async function signUp(
   body: API.SignUpDto,
   options?: { [key: string]: any }
 ) {
-  return request<void>("/auth/sign-up", {
+  return request<any>("/auth/sign-up", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

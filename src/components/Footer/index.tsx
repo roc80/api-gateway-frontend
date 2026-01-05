@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
         {
           key: 'API Gateway',
           title: 'API Gateway',
-          href: 'https://github.com/roc80',
+          href: 'https://github.com/roc80/api-gateway-frontend',
           blankTarget: true,
         },
         {
