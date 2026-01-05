@@ -1,9 +1,9 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { Helmet, history, useModel } from '@umijs/max';
-import { Alert, App, Button, Space, Tabs } from 'antd';
+import { App, Button, Space } from 'antd';
 import { createStyles } from 'antd-style';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Footer } from '@/components';
 import { signIn, signUp } from '@/services/api-gateway/signController';
@@ -87,11 +87,20 @@ const useStyles = createStyles(({ token }) => {
   };
 });
 const Login: React.FC = () => {
-  const [type, setType] = useState<string>('account');
   const [loginType, setLoginType] = useState<'login' | 'register'>('login');
   const { initialState, setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
   const { message } = App.useApp();
+
+  // 如果已登录，跳转到首页
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      if (initialState?.currentUser) {
+        history.push('/');
+      }
+    };
+    checkLoginStatus();
+  }, []);
   const fetchUserInfo = async () => {
     if (!initialState?.fetchUserInfo) {
       console.warn('fetchUserInfo 函数不存在');
@@ -108,7 +117,6 @@ const Login: React.FC = () => {
             currentUser: userInfo,
           }));
         });
-        console.log('用户信息获取成功:', userInfo);
         return userInfo;
       } else {
         console.warn('获取用户信息返回空值');
@@ -166,7 +174,6 @@ const Login: React.FC = () => {
       message.error(errorMessage);
     }
   };
-
   const handleRegister = async (body: API.SignUpDto) => {
     try {
       // 注册 - 调用注册接口
