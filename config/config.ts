@@ -15,6 +15,11 @@ const { REACT_APP_ENV = 'dev' } = process.env;
  */
 const PUBLIC_PATH: string = '/';
 export default defineConfig({
+  // 显式定义运行时可用的环境变量
+  define: {
+    'process.env.UMI_API_BASE_URL':
+      process.env.UMI_API_BASE_URL || "'http://localhost:8090/api'",
+  },
   /**
    * @name 开启 hash 模式
    * @description 让 build 之后的产物包含 hash 后缀。通常用于增量发布和避免浏览器加载缓存。
@@ -57,7 +62,7 @@ export default defineConfig({
    * @doc 代理介绍 https://umijs.org/docs/guides/proxy
    * @doc 代理配置 https://umijs.org/docs/api/config#proxy
    */
-  proxy: proxy[REACT_APP_ENV as keyof typeof proxy],
+  // proxy: proxy[REACT_APP_ENV as keyof typeof proxy], // 已使用 UMI_API_BASE_URL 直连后端，不需要代理
   /**
    * @name 快速热更新配置
    * @description 一个不错的热更新组件，更新时可以保留 state
@@ -145,7 +150,10 @@ export default defineConfig({
   openAPI: [
     {
       requestLibPath: "import { request } from '@umijs/max'",
-      schemaPath: 'http://localhost:8090/api/v3/api-docs',
+      schemaPath: process.env.UMI_API_BASE_URL
+        ? process.env.UMI_API_BASE_URL.replace(/\/api$/, '') +
+          '/api/v3/api-docs'
+        : 'http://localhost:8090/api/v3/api-docs',
       projectName: 'api-gateway',
     },
   ],

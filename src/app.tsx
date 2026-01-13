@@ -7,16 +7,15 @@ import '@ant-design/v5-patch-for-react-19';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
 import defaultSettings from '../config/defaultSettings';
-import { envConfig } from '../config/environments';
 import { errorConfig } from './requestErrorConfig';
+
+const API_BASE_URL = process.env.UMI_API_BASE_URL;
 
 // 在开发环境输出环境配置信息
 console.log('当前环境配置:', {
   NODE_ENV: process.env.NODE_ENV,
   UMI_ENV: process.env.UMI_ENV,
-  baseURL: envConfig.baseURL,
-  enableMock: envConfig.enableMock,
-  logLevel: envConfig.logLevel,
+  baseURL: API_BASE_URL,
 });
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -155,8 +154,7 @@ export const layout: RunTimeLayoutConfig = ({
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const request: RequestConfig = {
-  // 从环境配置中读取 baseURL
-  baseURL: envConfig.baseURL,
+  baseURL: API_BASE_URL,
   // 合并错误配置
   ...errorConfig,
 };
