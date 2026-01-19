@@ -12,7 +12,16 @@ export default [
     access: 'canAdmin',
     routes: [
       { path: '/admin', component: './Admin' },
-      { path: '/admin/sub-page', name: '用户管理', component: './table-list' },
+      {
+        path: '/admin/user-manage',
+        name: '用户管理',
+        component: './user-list',
+      },
+      {
+        path: '/admin/role-manage',
+        name: '角色管理',
+        component: './role-list',
+      },
     ],
   },
   { path: '/', redirect: '/welcome' },

@@ -131,8 +131,6 @@ const Login: React.FC = () => {
     try {
       // 登录 - 后端成功时只返回 200 状态码并设置 cookie，没有响应体
       await signIn(body);
-
-      // HTTP 200 状态码表示登录成功，后端已在 cookie 中设置了 token
       const defaultLoginSuccessMessage = '登录成功！';
       message.success(defaultLoginSuccessMessage);
 
@@ -152,26 +150,8 @@ const Login: React.FC = () => {
         message.error('获取用户信息失败，请重新登录');
       }
     } catch (error: any) {
-      const defaultLoginFailureMessage = '登录失败，请重试！';
-      console.log('登录异常:', error);
-
-      // 处理不同的错误状态码
-      const statusCode = error?.response?.status;
-      let errorMessage = defaultLoginFailureMessage;
-
-      if (statusCode === 401) {
-        errorMessage = '用户名或密码错误';
-      } else if (statusCode === 400) {
-        errorMessage = '请求参数错误';
-      } else if (statusCode === 500) {
-        errorMessage = '服务器内部错误';
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-
-      message.error(errorMessage);
+      console.log('登录异常:', error.response.data.detail);
+      message.error(error.response.data.detail);
     }
   };
   const handleRegister = async (body: API.SignUpDto) => {
