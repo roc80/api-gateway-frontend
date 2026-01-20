@@ -62,7 +62,12 @@ export function CrudForm<T extends Record<string, any>, UpsertDto = any>(
       const submitData = dataTransformer
         ? dataTransformer(formData, values)
         : (formData as UpsertDto);
-      await run(submitData);
+      // 如果 dataTransformer 返回数组，则展开参数传递给 submitFn
+      if (Array.isArray(submitData)) {
+        await run(...submitData);
+      } else {
+        await run(submitData);
+      }
     },
     [run, dataTransformer, values],
   );

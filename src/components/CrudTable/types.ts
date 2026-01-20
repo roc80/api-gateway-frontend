@@ -73,10 +73,10 @@ export interface CrudRequestConfig<T = any, QueryParams = any> {
 export interface CrudFormConfig<T = any, UpsertDto = any> {
   /** 表单标题（支持函数，根据是否有 id 判断） */
   title: string | ((values: Partial<T>) => string);
-  /** 提交函数 */
-  submitFn: (data: UpsertDto) => Promise<void>;
-  /** 将表单数据转换为 API 参数 */
-  dataTransformer?: (formData: any, values: Partial<T>) => UpsertDto;
+  /** 提交函数，支持可变参数 */
+  submitFn: (...args: any[]) => Promise<void>;
+  /** 将表单数据转换为 API 参数，返回数组时会作为参数展开传递给 submitFn */
+  dataTransformer?: (formData: any, values: Partial<T>) => UpsertDto | any[];
   /** 表单初始值转换（将 values 转换为表单初始值） */
   initialValuesTransformer?: (values: Partial<T>) => Record<string, any>;
   /** 提交成功消息 */

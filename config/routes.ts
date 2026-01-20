@@ -11,16 +11,38 @@ export default [
     icon: 'crown',
     access: 'canAdmin',
     routes: [
-      { path: '/admin', component: './Admin' },
       {
         path: '/admin/user-manage',
         name: '用户管理',
-        component: './user-list',
+        component: './user/user-list',
       },
       {
         path: '/admin/role-manage',
         name: '角色管理',
-        component: './role-list',
+        component: './user/role-list',
+      },
+      {
+        path: '/admin/api-manage',
+        name: 'API管理',
+        routes: [
+          {
+            path: '/admin/api-call-log-list',
+            name: 'API调用日志',
+            component: './api/api-call-log-list',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/api',
+    name: 'API列表',
+    routes: [
+      { path: '/api/list', name: 'API列表', component: './api/api-list' },
+      {
+        path: '/api/version',
+        name: 'API版本',
+        component: './api/api-version-list',
       },
     ],
   },
