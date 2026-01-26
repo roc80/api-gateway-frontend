@@ -1,17 +1,20 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProFormText } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
+import { useModel, useRequest } from '@umijs/max';
 import { message } from 'antd';
 import React, { useCallback } from 'react';
 import { CrudForm, CrudTable } from '@/components/CrudTable';
 import {
   batchDelete1,
   create,
-  search1,
+  searchInterfaces,
   update,
 } from '@/services/api-gateway/interfaceController';
 
 const ApiList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const currentUsername = initialState?.currentUser?.username;
+
   const [messageApi, contextHolder] = message.useMessage();
 
   const { run: delRun, loading: deleteLoading } = useRequest(batchDelete1, {
@@ -53,11 +56,6 @@ const ApiList: React.FC = () => {
       dataIndex: 'name',
     },
     {
-      title: '接口code',
-      dataIndex: 'code',
-      hideInForm: true,
-    },
-    {
       title: '接口描述',
       dataIndex: 'description',
     },
@@ -78,11 +76,6 @@ const ApiList: React.FC = () => {
       hideInForm: true,
     },
     {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      hideInForm: true,
-    },
-    {
       title: '更新时间',
       dataIndex: 'updateTime',
       hideInForm: true,
@@ -93,22 +86,20 @@ const ApiList: React.FC = () => {
     <>
       {contextHolder}
       <CrudTable
-        headerTitle="接口列表"
+        headerTitle="API列表"
         columns={columns}
         rowKey="id"
         listFn={async (params) => {
-          const response = await search1(params);
+          const response = await searchInterfaces(params);
           return {
             data: response.data || [],
             total: response.total || 0,
           };
         }}
         paramsTransformer={(params) => ({
-          pageRequestDto: {
-            page: params.current,
-            size: params.pageSize,
-          },
-          interfaceQueryDto: {
+          page: params.current,
+          size: params.pageSize,
+          request: {
             name: params.name,
             code: params.code,
             description: params.description,
@@ -159,6 +150,32 @@ const ApiList: React.FC = () => {
             />
             <ProFormText name="description" label="接口描述" width="md" />
             <ProFormText name="category" label="接口分类" width="md" />
+          </CrudForm>
+        )}
+        toolbarActionsRender={(actionRef) => (
+          <CrudForm
+            trigger={<a type={'primary'}>新建</a>}
+            onOk={() => actionRef.current?.reload()}
+            values={{}}
+            title="新建API"
+            submitFn={async (data: API.InterfaceCreateDto) => {
+              await create(data);
+            }}
+            dataTransformer={(formData, values) => ({
+              name: formData.name,
+              description: formData.description || values.description || '',
+              category: formData.category || values.category || '',
+              owner: currentUsername || '',
+            })}
+          >
+            <ProFormText
+              name="name"
+              label={'接口名称'}
+              width="md"
+              rules={[{ required: true, message: '请输入接口名称！' }]}
+            />
+            <ProFormText name="description" label={'接口描述'} width="md" />
+            <ProFormText name="category" label={'接口分类'} width="md" />
           </CrudForm>
         )}
       />

@@ -25,25 +25,30 @@ export default [
         path: '/admin/api-manage',
         name: 'API管理',
         routes: [
-          {
-            path: '/admin/api-call-log-list',
-            name: 'API调用日志',
-            component: './api/api-call-log-list',
-          },
+          // {
+          //   path: '/admin/api-call-log-list',
+          //   name: 'API调用日志',
+          //   component: './api/api-call-log-list',
+          // },
         ],
       },
     ],
   },
   {
     path: '/api',
-    name: 'API列表',
+    name: '接口调用',
+    icon: 'api',
     routes: [
-      { path: '/api/list', name: 'API列表', component: './api/api-list' },
       {
-        path: '/api/version',
-        name: 'API版本',
-        component: './api/api-version-list',
+        path: '/api/list',
+        name: 'API列表',
+        component: './api/api-list',
       },
+      // {
+      //   path: '/api/version',
+      //   name: 'API版本',
+      //   component: './api/api-version-list',
+      // },
     ],
   },
   { path: '/', redirect: '/welcome' },

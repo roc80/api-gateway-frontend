@@ -96,7 +96,7 @@ export async function batchDelete1(
 }
 
 /** 分页查询接口列表 根据条件分页查询接口列表 POST /api/interfaces/search */
-export async function search1(
+export async function searchInterfaces(
   body: API.PageRequestDtoInterfaceQueryDto,
   options?: { [key: string]: any }
 ) {

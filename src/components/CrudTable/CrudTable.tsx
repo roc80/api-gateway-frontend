@@ -17,6 +17,10 @@ export interface CrudTableProps<T = any, QueryParams = any>
     CrudRequestConfig<T, QueryParams> {
   /** 额外的工具栏按钮（表格右上角） */
   toolbarActions?: React.ReactNode;
+  /** 额外的工具栏按钮（函数形式，接收 actionRef） */
+  toolbarActionsRender?: (
+    actionRef: React.RefObject<ActionType | null>,
+  ) => React.ReactNode;
 }
 
 export function CrudTable<T extends Record<string, any>, QueryParams = any>(
@@ -35,6 +39,7 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
     listFn,
     paramsTransformer,
     toolbarActions,
+    toolbarActionsRender,
   } = props;
 
   const actionRef = useRef<ActionType | null>(null);
@@ -82,7 +87,13 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
         search={{
           labelWidth,
         }}
-        toolBarRender={toolbarActions ? () => [toolbarActions] : undefined}
+        toolBarRender={
+          toolbarActionsRender
+            ? () => [toolbarActionsRender(actionRef)]
+            : toolbarActions
+              ? () => [toolbarActions]
+              : undefined
+        }
         request={handleRequest}
         columns={finalColumns}
         rowSelection={

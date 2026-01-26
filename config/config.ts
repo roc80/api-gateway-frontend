@@ -18,7 +18,7 @@ export default defineConfig({
   // 显式定义运行时可用的环境变量
   define: {
     'process.env.UMI_API_BASE_URL':
-      process.env.UMI_API_BASE_URL || "'http://localhost:8090/api'",
+      process.env.UMI_API_BASE_URL || 'http://localhost:8090/api',
   },
   /**
    * @name 开启 hash 模式
