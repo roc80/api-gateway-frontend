@@ -44,6 +44,7 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
   } = props;
 
   const actionRef = useRef<ActionType | null>(null);
+  const formRef = useRef<ProFormInstance>();
   const [detailVisible, setDetailVisible] = useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<T>();
   const [selectedRowsState, setSelectedRows] = useState<T[]>([]);
@@ -66,9 +67,19 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
 
   const handleRequest = useCallback(
     async (params: any) => {
+      // 修复：使用表单的实际值，避免清除搜索框后刷新时携带旧参数
+      const formValues = formRef.current?.getFieldsFormatValue?.() || {};
+
+      // 合并：分页参数来自 params，搜索参数来自 form 的实际值
+      const mergedParams: Record<string, any> = {
+        current: params.current,
+        pageSize: params.pageSize,
+        ...formValues,
+      };
+
       const transformedParams = paramsTransformer
-        ? paramsTransformer(params)
-        : (params as QueryParams);
+        ? paramsTransformer(mergedParams)
+        : (mergedParams as QueryParams);
       const response = await listFn(transformedParams);
       return {
         data: response.data || [],
@@ -85,6 +96,7 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
         className="crud-table-center-header"
         headerTitle={headerTitle}
         actionRef={actionRef}
+        formRef={formRef}
         rowKey={rowKey as string}
         search={{
           labelWidth,
