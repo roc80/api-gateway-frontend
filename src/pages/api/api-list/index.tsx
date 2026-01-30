@@ -3,7 +3,7 @@ import { ProFormText } from '@ant-design/pro-components';
 import { useModel, useRequest } from '@umijs/max';
 import { message } from 'antd';
 import React, { useCallback } from 'react';
-import { CrudForm, CrudTable } from '@/components/CrudTable';
+import { CrudForm, CrudTable, updateTimeColumn } from '@/components/CrudTable';
 import {
   batchDelete1,
   create,
@@ -75,11 +75,9 @@ const ApiList: React.FC = () => {
       dataIndex: 'owner',
       hideInForm: true,
     },
-    {
+    updateTimeColumn<API.InterfaceDto>({
       title: '更新时间',
-      dataIndex: 'updateTime',
-      hideInForm: true,
-    },
+    }),
   ];
 
   return (

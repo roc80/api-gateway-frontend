@@ -3,7 +3,7 @@ import { ProFormRadio, ProFormText } from '@ant-design/pro-components';
 import { useRequest } from '@umijs/max';
 import { message } from 'antd';
 import React, { useCallback } from 'react';
-import { CrudForm, CrudTable } from '@/components/CrudTable';
+import { CrudForm, CrudTable, createTimeColumn } from '@/components/CrudTable';
 import {
   deleteUser,
   queryUsers,
@@ -82,14 +82,9 @@ const UserList: React.FC = () => {
         </span>
       ),
     },
-    {
+    createTimeColumn<API.UserRolePermissionDto>({
       title: '创建时间',
-      dataIndex: 'createTime',
-      valueType: 'dateTime',
-      hideInSearch: true,
-      hideInForm: true,
-      sorter: true,
-    },
+    }),
   ];
 
   return (
@@ -131,7 +126,7 @@ const UserList: React.FC = () => {
             trigger={<a>编辑</a>}
             onOk={() => actionRef.current?.reload()}
             values={record}
-            title={(values) => (values.id ? '编辑用户' : '新建用户')}
+            title="编辑用户"
             submitFn={async (data: API.UserUpsertDto) => {
               await upsertUser(data);
             }}
@@ -169,45 +164,6 @@ const UserList: React.FC = () => {
             />
           </CrudForm>
         )}
-        toolbarActions={
-          <CrudForm
-            trigger={<a type="primary">新建用户</a>}
-            onOk={() => window.location.reload()}
-            values={{}}
-            title="新建用户"
-            submitFn={async (data: API.UserUpsertDto) => {
-              await upsertUser(data);
-            }}
-            dataTransformer={(formData) => ({
-              id: 0,
-              username: formData.username || '',
-              password: formData.password || '',
-              enable: formData.enable ?? true,
-            })}
-          >
-            <ProFormText
-              name="username"
-              label="用户名"
-              width="md"
-              rules={[{ required: true, message: '请输入用户名！' }]}
-            />
-            <ProFormText.Password
-              name="password"
-              width="md"
-              label="密码"
-              rules={[{ required: true, message: '请输入密码！' }]}
-            />
-            <ProFormRadio.Group
-              name="enable"
-              label="状态"
-              rules={[{ required: true }]}
-              options={[
-                { value: true, label: '启用' },
-                { value: false, label: '禁用' },
-              ]}
-            />
-          </CrudForm>
-        }
       />
     </>
   );

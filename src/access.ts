@@ -9,7 +9,7 @@ export default function access(
     canAdmin:
       currentUser &&
       currentUser.roles
-        ?.flatMap((item) => item.code)
+        ?.map((item) => item.code)
         ?.some((code) => code?.toLowerCase() === 'admin'),
   };
 }

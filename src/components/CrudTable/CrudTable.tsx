@@ -1,6 +1,7 @@
 import type {
   ActionType,
   ProDescriptionsItemProps,
+  ProFormInstance,
 } from '@ant-design/pro-components';
 import {
   FooterToolbar,
@@ -81,6 +82,7 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
   return (
     <PageContainer>
       <ProTable<T>
+        className="crud-table-center-header"
         headerTitle={headerTitle}
         actionRef={actionRef}
         rowKey={rowKey as string}
