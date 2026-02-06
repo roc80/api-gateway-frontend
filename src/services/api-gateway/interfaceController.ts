@@ -81,7 +81,7 @@ export async function patchEnabled(
 }
 
 /** 批量删除接口 根据 ID 列表批量删除接口 DELETE /api/interfaces/batch */
-export async function batchDelete1(
+export async function batchDeleteInterfaces(
   body: API.InterfaceBatchDeleteDto,
   options?: { [key: string]: any }
 ) {

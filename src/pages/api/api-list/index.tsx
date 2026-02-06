@@ -5,7 +5,7 @@ import { message } from 'antd';
 import React, { useCallback } from 'react';
 import { CrudForm, CrudTable, updateTimeColumn } from '@/components/CrudTable';
 import {
-  batchDelete1,
+  batchDeleteInterfaces,
   create,
   searchInterfaces,
   update,
@@ -17,15 +17,18 @@ const ApiList: React.FC = () => {
 
   const [messageApi, contextHolder] = message.useMessage();
 
-  const { run: delRun, loading: deleteLoading } = useRequest(batchDelete1, {
-    manual: true,
-    onSuccess: () => {
-      messageApi.success('删除成功');
+  const { run: delRun, loading: deleteLoading } = useRequest(
+    batchDeleteInterfaces,
+    {
+      manual: true,
+      onSuccess: () => {
+        messageApi.success('删除成功');
+      },
+      onError: () => {
+        messageApi.error('删除失败，请重试');
+      },
     },
-    onError: () => {
-      messageApi.error('删除失败，请重试');
-    },
-  });
+  );
 
   const handleBatchDelete = useCallback(
     async (selectedRows: API.InterfaceDto[]) => {

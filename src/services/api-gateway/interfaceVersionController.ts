@@ -3,7 +3,7 @@
 import { request } from "@umijs/max";
 
 /** 新增接口版本 POST /api/interfaces/versions */
-export async function create1(
+export async function createInterfaceVersion(
   body: API.InterfaceVersionCreateDto,
   options?: { [key: string]: any }
 ) {
@@ -35,7 +35,7 @@ export async function getById1(
 }
 
 /** 更新接口版本 POST /api/interfaces/versions/${param0} */
-export async function update1(
+export async function updateInterfaceVersion(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.update1Params,
   body: API.InterfaceVersionUpdateDto,
@@ -57,7 +57,7 @@ export async function update1(
 }
 
 /** 删除接口版本 DELETE /api/interfaces/versions/${param0} */
-export async function delete1(
+export async function deleteInterfaceVersion(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.delete1Params,
   options?: { [key: string]: any }
@@ -71,7 +71,7 @@ export async function delete1(
 }
 
 /** 批量删除接口版本 DELETE /api/interfaces/versions/batch */
-export async function batchDelete(
+export async function batchDeleteInterfaceVersion(
   body: API.InterfaceVersionBatchDeleteDto,
   options?: { [key: string]: any }
 ) {
@@ -86,7 +86,7 @@ export async function batchDelete(
 }
 
 /** 分页查询接口版本列表 根据条件分页查询接口版本列表 POST /api/interfaces/versions/search */
-export async function search(
+export async function searchInterfaceVersion(
   body: API.PageRequestDtoInterfaceVersionQueryDto,
   options?: { [key: string]: any }
 ) {

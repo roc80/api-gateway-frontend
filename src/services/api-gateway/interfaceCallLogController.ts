@@ -17,7 +17,7 @@ export async function getById2(
 }
 
 /** 分页查询接口调用日志列表 根据条件分页查询接口调用日志列表 POST /api/interfaces/logs/search */
-export async function search2(
+export async function searchInterfaceCallLog(
   body: API.PageRequestDtoInterfaceCallLogQueryDto,
   options?: { [key: string]: any }
 ) {
