@@ -43,11 +43,18 @@ export interface BatchAction<T = any> {
   /** 危险操作（红色） */
   danger?: boolean;
   /** 点击事件 */
-  onClick: (selectedRows: T[]) => void | Promise<void>;
+  onClick: (
+    selectedRows: T[],
+    actionRef: React.RefObject<ActionType | null>,
+  ) => void | Promise<void>;
   /** 是否显示加载状态 */
   loading?: boolean;
   /** 自定义按钮渲染 - 返回 React 组件构造函数 */
-  render?: (selectedRows: T[], onClick: () => void) => React.FC<any>;
+  render?: (
+    selectedRows: T[],
+    onClick: () => void,
+    actionRef: React.RefObject<ActionType | null>,
+  ) => React.FC<any>;
 }
 
 /**

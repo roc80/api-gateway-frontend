@@ -58,9 +58,9 @@ declare namespace API {
     /** 调用者 */
     caller?: string;
     /** 请求JSON */
-    requestData?: JSONB;
+    requestData?: string;
     /** 响应JSON */
-    responseData?: JSONB;
+    responseData?: string;
     /** 响应状态码 */
     statusCode?: number;
     /** 是否调用成功 */
@@ -165,19 +165,19 @@ declare namespace API {
     /** HTTP请求路径 */
     path: string;
     /** HTTP请求头 */
-    requestHeaders?: JSONB;
+    requestHeaders?: string;
     /** HTTP请求参数 */
-    requestParams?: JSONB;
+    requestParams?: string;
     /** HTTP请求体 */
-    requestBody?: JSONB;
+    requestBody?: string;
     /** HTTP响应体 */
-    responseBody?: JSONB;
+    responseBody?: string;
     /** HTTP响应示例 */
-    responseExample?: JSONB;
+    responseExample?: string;
     /** CURL请求示例 */
     exampleCurl?: string;
     /** 代码示例 */
-    exampleCode?: JSONB;
+    exampleCode?: string;
     /** 认证方式 */
     authType?: string;
   };
@@ -195,19 +195,19 @@ declare namespace API {
     /** 接口路径 */
     path?: string;
     /** 请求头 */
-    requestHeaders?: JSONB;
+    requestHeaders?: string;
     /** 请求参数 */
-    requestParams?: JSONB;
+    requestParams?: string;
     /** 请求体 */
-    requestBody?: JSONB;
+    requestBody?: string;
     /** 响应体 */
-    responseBody?: JSONB;
+    responseBody?: string;
     /** 响应示例 */
-    responseExample?: JSONB;
+    responseExample?: string;
     /** 示例curl */
     exampleCurl?: string;
     /** 示例代码 */
-    exampleCode?: JSONB;
+    exampleCode?: string;
     /** 认证类型 */
     authType?: string;
     /** 是否允许调用 */
@@ -230,7 +230,7 @@ declare namespace API {
     /** HTTP请求路径 */
     path?: string;
     /** HTTP请求头 */
-    requestHeaders?: JSONB;
+    requestHeaders?: string;
     /** 认证方式 */
     authType?: string;
     /** 是否允许调用 */
@@ -253,26 +253,24 @@ declare namespace API {
     /** HTTP请求路径 */
     path?: string;
     /** HTTP请求头 */
-    requestHeaders?: JSONB;
+    requestHeaders?: string;
     /** HTTP请求参数 */
-    requestParams?: JSONB;
+    requestParams?: string;
     /** HTTP请求体 */
-    requestBody?: JSONB;
+    requestBody?: string;
     /** HTTP响应体 */
-    responseBody?: JSONB;
+    responseBody?: string;
     /** HTTP响应示例 */
-    responseExample?: JSONB;
+    responseExample?: string;
     /** CURL请求示例 */
     exampleCurl?: string;
     /** 代码示例 */
-    exampleCode?: JSONB;
+    exampleCode?: string;
     /** 认证方式 */
     authType?: string;
     /** 是否允许调用 */
     allowInvoke?: boolean;
   };
-
-  type JSONB = Record<string, any>;
 
   type PageRequestDto = {
     page?: number;

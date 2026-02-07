@@ -49,6 +49,12 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
   const [currentRow, setCurrentRow] = useState<T>();
   const [selectedRowsState, setSelectedRows] = useState<T[]>([]);
 
+  // 从 selectedRows 计算出 selectedRowKeys，避免冗余状态
+  const selectedRowKeys = React.useMemo(
+    () => selectedRowsState.map((row) => row[rowKey as string]),
+    [selectedRowsState, rowKey],
+  );
+
   // 合并默认操作列
   const finalColumns: typeof columns = React.useMemo(() => {
     if (renderActions) {
@@ -113,6 +119,7 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
         rowSelection={
           showBatchActions
             ? {
+                selectedRowKeys,
                 onChange: (_, selectedRows) => {
                   setSelectedRows(selectedRows);
                 },
@@ -140,13 +147,17 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
           >
             {batchActions.map((action) => {
               const handleClick = async () => {
-                await action.onClick(selectedRowsState);
-                setSelectedRows([]);
+                try {
+                  await action.onClick(selectedRowsState, actionRef);
+                } finally {
+                  setSelectedRows([]);
+                }
               };
               if (action.render) {
                 const RenderComponent = action.render(
                   selectedRowsState,
                   handleClick,
+                  actionRef,
                 );
                 return <RenderComponent key={action.text} />;
               }

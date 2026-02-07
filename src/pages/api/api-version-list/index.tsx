@@ -1,5 +1,9 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { ProFormText } from '@ant-design/pro-components';
+import {
+  ProFormSwitch,
+  ProFormText,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
 import { useRequest } from '@umijs/max';
 import { message } from 'antd';
 import React, { useCallback } from 'react';
@@ -28,7 +32,10 @@ const ApiVersionList: React.FC = () => {
   );
 
   const handleBatchDelete = useCallback(
-    async (selectedRows: API.InterfaceVersionDto[]) => {
+    async (
+      selectedRows: API.InterfaceVersionDto[],
+      actionRef: React.RefObject<any>,
+    ) => {
       if (!selectedRows?.length) {
         messageApi.warning('请选择删除项');
         return;
@@ -43,6 +50,7 @@ const ApiVersionList: React.FC = () => {
           }
         }
         await delRun(batchDeleteDto);
+        actionRef.current?.reload();
       } catch (error) {
         console.error('删除失败:', error);
       }
@@ -51,6 +59,10 @@ const ApiVersionList: React.FC = () => {
   );
 
   const columns: ProColumns<API.InterfaceVersionDto>[] = [
+    {
+      title: '接口ID',
+      dataIndex: 'apiId',
+    },
     {
       title: '接口版本',
       dataIndex: 'version',
@@ -69,6 +81,61 @@ const ApiVersionList: React.FC = () => {
     {
       title: '接口路径',
       dataIndex: 'path',
+    },
+    {
+      title: '请求头',
+      dataIndex: 'requestHeaders',
+      render: (_, record) => {
+        return record.requestHeaders
+          ? JSON.stringify(record.requestHeaders)
+          : '-';
+      },
+    },
+    {
+      title: '请求参数',
+      dataIndex: 'requestParams',
+      render: (_, record) => {
+        return record.requestParams
+          ? JSON.stringify(record.requestParams)
+          : '-';
+      },
+    },
+    {
+      title: '请求体',
+      dataIndex: 'requestBody',
+      render: (_, record) => {
+        return record.requestBody ? JSON.stringify(record.requestBody) : '-';
+      },
+    },
+    {
+      title: '响应体',
+      dataIndex: 'responseBody',
+      render: (_, record) => {
+        return record.responseBody ? JSON.stringify(record.responseBody) : '-';
+      },
+    },
+    {
+      title: '响应示例',
+      dataIndex: 'responseExample',
+      render: (_, record) => {
+        return record.responseExample
+          ? JSON.stringify(record.responseExample)
+          : '-';
+      },
+    },
+    {
+      title: '示例curl',
+      dataIndex: 'exampleCurl',
+      render: (_, record) => {
+        return record.exampleCurl || '-';
+      },
+    },
+    {
+      title: '示例代码',
+      dataIndex: 'exampleCode',
+      render: (_, record) => {
+        return record.exampleCode ? JSON.stringify(record.exampleCode) : '-';
+      },
     },
     {
       title: '认证类型',
@@ -90,7 +157,7 @@ const ApiVersionList: React.FC = () => {
     <>
       {contextHolder}
       <CrudTable
-        headerTitle="API列表"
+        headerTitle="API版本"
         columns={columns}
         rowKey="id"
         listFn={async (params) => {
@@ -104,12 +171,14 @@ const ApiVersionList: React.FC = () => {
           page: params.current,
           size: params.pageSize,
           request: {
-            version: params.version,
-            current: params.current,
-            httpMethod: params.httpMethod,
-            path: params.path,
-            authType: params.authType,
-            allowInvoke: params.allowInvoke,
+            // apiId: params.apiId,
+            // version: params.version,
+            // current: false,
+            // httpMethod: params.httpMethod,
+            // path: params.path,
+            // requestHeaders: {},
+            // authType: params.authType,
+            // allowInvoke: params.allowInvoke,
           },
         })}
         showDetail={false}
@@ -119,7 +188,8 @@ const ApiVersionList: React.FC = () => {
             text: '批量删除',
             type: 'default',
             danger: true,
-            onClick: handleBatchDelete,
+            onClick: (selectedRows, actionRef) =>
+              handleBatchDelete(selectedRows, actionRef),
             loading: deleteLoading,
           },
         ]}
@@ -141,6 +211,25 @@ const ApiVersionList: React.FC = () => {
                 path: formData.path || values.path || '',
                 authType: formData.authType || values.authType || '',
                 allowInvoke: formData.allowInvoke ?? values.allowInvoke,
+                requestHeaders: formData.requestHeaders
+                  ? JSON.parse(formData.requestHeaders as string)
+                  : values.requestHeaders,
+                requestParams: formData.requestParams
+                  ? JSON.parse(formData.requestParams as string)
+                  : values.requestParams,
+                requestBody: formData.requestBody
+                  ? JSON.parse(formData.requestBody as string)
+                  : values.requestBody,
+                responseBody: formData.responseBody
+                  ? JSON.parse(formData.responseBody as string)
+                  : values.responseBody,
+                responseExample: formData.responseExample
+                  ? JSON.parse(formData.responseExample as string)
+                  : values.responseExample,
+                exampleCurl: formData.exampleCurl || values.exampleCurl,
+                exampleCode: formData.exampleCode
+                  ? JSON.parse(formData.exampleCode as string)
+                  : values.exampleCode,
               },
             ]}
             initialValuesTransformer={(values) => ({
@@ -150,6 +239,25 @@ const ApiVersionList: React.FC = () => {
               path: values.path,
               authType: values.authType,
               allowInvoke: values.allowInvoke,
+              requestHeaders: values.requestHeaders
+                ? JSON.stringify(values.requestHeaders, null, 2)
+                : undefined,
+              requestParams: values.requestParams
+                ? JSON.stringify(values.requestParams, null, 2)
+                : undefined,
+              requestBody: values.requestBody
+                ? JSON.stringify(values.requestBody, null, 2)
+                : undefined,
+              responseBody: values.responseBody
+                ? JSON.stringify(values.responseBody, null, 2)
+                : undefined,
+              responseExample: values.responseExample
+                ? JSON.stringify(values.responseExample, null, 2)
+                : undefined,
+              exampleCurl: values.exampleCurl,
+              exampleCode: values.exampleCode
+                ? JSON.stringify(values.exampleCode, null, 2)
+                : undefined,
             })}
           >
             <ProFormText
@@ -158,6 +266,7 @@ const ApiVersionList: React.FC = () => {
               width="md"
               rules={[{ required: true, message: '请输入接口版本！' }]}
             />
+            <ProFormSwitch name="current" label="是否当前版本" />
             <ProFormText
               name="httpMethod"
               label="HTTP方法"
@@ -171,6 +280,49 @@ const ApiVersionList: React.FC = () => {
               rules={[{ required: true, message: '请输入接口路径！' }]}
             />
             <ProFormText name="authType" label="认证类型" width="md" />
+            <ProFormSwitch name="allowInvoke" label="是否允许调用" />
+            <ProFormTextArea
+              name="requestHeaders"
+              label="请求头（JSON）"
+              width="xl"
+              fieldProps={{ rows: 3 }}
+            />
+            <ProFormTextArea
+              name="requestParams"
+              label="请求参数（JSON）"
+              width="xl"
+              fieldProps={{ rows: 3 }}
+            />
+            <ProFormTextArea
+              name="requestBody"
+              label="请求体（JSON）"
+              width="xl"
+              fieldProps={{ rows: 3 }}
+            />
+            <ProFormTextArea
+              name="responseBody"
+              label="响应体（JSON）"
+              width="xl"
+              fieldProps={{ rows: 3 }}
+            />
+            <ProFormTextArea
+              name="responseExample"
+              label="响应示例（JSON）"
+              width="xl"
+              fieldProps={{ rows: 3 }}
+            />
+            <ProFormTextArea
+              name="exampleCurl"
+              label="示例curl"
+              width="xl"
+              fieldProps={{ rows: 2 }}
+            />
+            <ProFormTextArea
+              name="exampleCode"
+              label="示例代码（JSON）"
+              width="xl"
+              fieldProps={{ rows: 3 }}
+            />
           </CrudForm>
         )}
         toolbarActionsRender={(actionRef) => (
@@ -178,7 +330,7 @@ const ApiVersionList: React.FC = () => {
             trigger={<a type={'primary'}>新建</a>}
             onOk={() => actionRef.current?.reload()}
             values={{}}
-            title="新建API"
+            title="新建"
             submitFn={async (data: API.InterfaceVersionCreateDto) => {
               await createInterfaceVersion(data);
             }}
@@ -189,6 +341,25 @@ const ApiVersionList: React.FC = () => {
               path: formData.path,
               current: formData.current,
               authType: formData.authType,
+              requestHeaders: formData.requestHeaders
+                ? JSON.parse(formData.requestHeaders as string)
+                : undefined,
+              requestParams: formData.requestParams
+                ? JSON.parse(formData.requestParams as string)
+                : undefined,
+              requestBody: formData.requestBody
+                ? JSON.parse(formData.requestBody as string)
+                : undefined,
+              responseBody: formData.responseBody
+                ? JSON.parse(formData.responseBody as string)
+                : undefined,
+              responseExample: formData.responseExample
+                ? JSON.parse(formData.responseExample as string)
+                : undefined,
+              exampleCurl: formData.exampleCurl,
+              exampleCode: formData.exampleCode
+                ? JSON.parse(formData.exampleCode as string)
+                : undefined,
             })}
           >
             <ProFormText
@@ -203,6 +374,7 @@ const ApiVersionList: React.FC = () => {
               width="md"
               rules={[{ required: true, message: '请输入接口版本！' }]}
             />
+            <ProFormSwitch name="current" label={'是否当前版本'} />
             <ProFormText
               name="httpMethod"
               label={'HTTP方法'}
@@ -216,6 +388,53 @@ const ApiVersionList: React.FC = () => {
               rules={[{ required: true, message: '请输入接口路径！' }]}
             />
             <ProFormText name="authType" label={'认证类型'} width="md" />
+            <ProFormTextArea
+              name="requestHeaders"
+              label={'请求头（JSON）'}
+              width="xl"
+              fieldProps={{ rows: 3 }}
+              placeholder='{"Content-Type": "application/json"}'
+            />
+            <ProFormTextArea
+              name="requestParams"
+              label={'请求参数（JSON）'}
+              width="xl"
+              fieldProps={{ rows: 3 }}
+              placeholder='{"param1": "value1"}'
+            />
+            <ProFormTextArea
+              name="requestBody"
+              label={'请求体（JSON）'}
+              width="xl"
+              fieldProps={{ rows: 3 }}
+              placeholder='{"key": "value"}'
+            />
+            <ProFormTextArea
+              name="responseBody"
+              label={'响应体（JSON）'}
+              width="xl"
+              fieldProps={{ rows: 3 }}
+              placeholder='{"result": "success"}'
+            />
+            <ProFormTextArea
+              name="responseExample"
+              label={'响应示例（JSON）'}
+              width="xl"
+              fieldProps={{ rows: 3 }}
+            />
+            <ProFormTextArea
+              name="exampleCurl"
+              label={'示例curl'}
+              width="xl"
+              fieldProps={{ rows: 2 }}
+              placeholder="curl -X POST http://example.com/api"
+            />
+            <ProFormTextArea
+              name="exampleCode"
+              label={'示例代码（JSON）'}
+              width="xl"
+              fieldProps={{ rows: 3 }}
+            />
           </CrudForm>
         )}
       />
