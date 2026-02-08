@@ -48,8 +48,9 @@ export function CrudForm<T extends Record<string, any>, UpsertDto = any>(
       onOk?.();
       setOpen(false);
     },
-    onError: () => {
-      messageApi.error(errorMessage);
+    onError: (error: any) => {
+      const detail = error?.response?.data?.detail;
+      messageApi.error(detail || errorMessage);
     },
   });
 

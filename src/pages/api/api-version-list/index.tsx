@@ -205,67 +205,37 @@ const ApiVersionList: React.FC = () => {
             dataTransformer={(formData, values) => [
               { id: values.id || 0 },
               {
-                version: formData.version || values.version || '',
                 current: formData.current ?? values.current,
-                httpMethod: formData.httpMethod || values.httpMethod || '',
-                path: formData.path || values.path || '',
-                authType: formData.authType || values.authType || '',
+                httpMethod: formData.httpMethod || values.httpMethod,
+                path: formData.path || values.path,
+                authType: formData.authType || values.authType,
                 allowInvoke: formData.allowInvoke ?? values.allowInvoke,
-                requestHeaders: formData.requestHeaders
-                  ? JSON.parse(formData.requestHeaders as string)
-                  : values.requestHeaders,
-                requestParams: formData.requestParams
-                  ? JSON.parse(formData.requestParams as string)
-                  : values.requestParams,
-                requestBody: formData.requestBody
-                  ? JSON.parse(formData.requestBody as string)
-                  : values.requestBody,
-                responseBody: formData.responseBody
-                  ? JSON.parse(formData.responseBody as string)
-                  : values.responseBody,
-                responseExample: formData.responseExample
-                  ? JSON.parse(formData.responseExample as string)
-                  : values.responseExample,
+                requestHeaders:
+                  formData.requestHeaders ?? values.requestHeaders,
+                requestParams: formData.requestParams ?? values.requestParams,
+                requestBody: formData.requestBody ?? values.requestBody,
+                responseBody: formData.responseBody ?? values.responseBody,
+                responseExample:
+                  formData.responseExample ?? values.responseExample,
                 exampleCurl: formData.exampleCurl || values.exampleCurl,
-                exampleCode: formData.exampleCode
-                  ? JSON.parse(formData.exampleCode as string)
-                  : values.exampleCode,
+                exampleCode: formData.exampleCode ?? values.exampleCode,
               },
             ]}
             initialValuesTransformer={(values) => ({
-              version: values.version,
               current: values.current,
               httpMethod: values.httpMethod,
               path: values.path,
               authType: values.authType,
               allowInvoke: values.allowInvoke,
-              requestHeaders: values.requestHeaders
-                ? JSON.stringify(values.requestHeaders, null, 2)
-                : undefined,
-              requestParams: values.requestParams
-                ? JSON.stringify(values.requestParams, null, 2)
-                : undefined,
-              requestBody: values.requestBody
-                ? JSON.stringify(values.requestBody, null, 2)
-                : undefined,
-              responseBody: values.responseBody
-                ? JSON.stringify(values.responseBody, null, 2)
-                : undefined,
-              responseExample: values.responseExample
-                ? JSON.stringify(values.responseExample, null, 2)
-                : undefined,
+              requestHeaders: values.requestHeaders,
+              requestParams: values.requestParams,
+              requestBody: values.requestBody,
+              responseBody: values.responseBody,
+              responseExample: values.responseExample,
               exampleCurl: values.exampleCurl,
-              exampleCode: values.exampleCode
-                ? JSON.stringify(values.exampleCode, null, 2)
-                : undefined,
+              exampleCode: values.exampleCode,
             })}
           >
-            <ProFormText
-              name="version"
-              label="接口版本"
-              width="md"
-              rules={[{ required: true, message: '请输入接口版本！' }]}
-            />
             <ProFormSwitch name="current" label="是否当前版本" />
             <ProFormText
               name="httpMethod"

@@ -420,12 +420,12 @@ declare namespace API {
     order?: "ASC" | "DESC" | "DEFAULT";
   };
 
-  type update1Params = {
+  type interfaceVersionUpdateParams = {
     /** 接口版本ID */
     id: number;
   };
 
-  type updateParams = {
+  type interfaceUpdateParams = {
     /** 接口ID */
     id: number;
   };
