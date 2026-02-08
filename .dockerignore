@@ -1,0 +1,14 @@
+node_modules
+.git
+.gitignore
+.umi
+.umi-production
+dist
+.DS_Store
+*.log
+.env.local
+.vscode
+.idea
+*.iml
+TARGET.md
+MEMORY.md
