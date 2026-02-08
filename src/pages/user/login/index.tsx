@@ -1,7 +1,7 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { Helmet, history, useModel } from '@umijs/max';
-import { App, Button, Space } from 'antd';
+import { App, Button, Space, theme } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -9,88 +9,188 @@ import { Footer } from '@/components';
 import { signIn, signUp } from '@/services/api-gateway/signController';
 import Settings from '../../../../config/defaultSettings';
 
-const useStyles = createStyles(({ token }) => {
-  return {
-    action: {
-      marginLeft: '8px',
-      color: 'rgba(0, 0, 0, 0.2)',
-      fontSize: '24px',
-      verticalAlign: 'middle',
-      cursor: 'pointer',
-      transition: 'color 0.3s',
-      '&:hover': {
-        color: token.colorPrimaryActive,
-      },
+const useStyles = createStyles(({ token }) => ({
+  action: {
+    marginLeft: '8px',
+    color: 'rgba(0, 0, 0, 0.2)',
+    fontSize: '24px',
+    verticalAlign: 'middle',
+    cursor: 'pointer',
+    transition: 'color 0.3s',
+    '&:hover': {
+      color: token.colorPrimaryActive,
     },
-    lang: {
-      width: 42,
-      height: 42,
-      lineHeight: '42px',
-      position: 'fixed',
-      right: 16,
-      borderRadius: token.borderRadius,
-      ':hover': {
-        backgroundColor: token.colorBgTextHover,
-      },
+  },
+  lang: {
+    width: 42,
+    height: 42,
+    lineHeight: '42px',
+    position: 'fixed',
+    right: 16,
+    borderRadius: token.borderRadius,
+    ':hover': {
+      backgroundColor: token.colorBgTextHover,
     },
-    container: {
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      overflow: 'auto',
-      backgroundImage:
-        "url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr')",
-      backgroundSize: '100% 100%',
+  },
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100vh',
+    overflow: 'auto',
+    position: 'relative',
+    background: '#f5f5f5',
+  },
+  canvas: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 0,
+  },
+  button: {
+    background: `${token.colorBgContainer} !important`,
+    border: `1px solid ${token.colorBorder} !important`,
+    borderRadius: token.borderRadius,
+    color: `${token.colorPrimary} !important`,
+    fontWeight: 500,
+    '&:hover': {
+      background: `${token.colorPrimaryBg} !important`,
+      borderColor: `${token.colorPrimary} !important`,
+      color: `${token.colorPrimary} !important`,
     },
-    glassButton: {
-      background: 'rgba(135, 206, 235, 0.25) !important',
-      backdropFilter: 'blur(10px) !important',
-      WebkitBackdropFilter: 'blur(10px) !important',
-      border: '1px solid rgba(135, 206, 235, 0.3) !important',
-      borderRadius: '12px !important',
-      boxShadow: '0 8px 32px rgba(135, 206, 235, 0.15) !important',
-      color: '#fff !important',
-      fontWeight: '500 !important',
-      transition: 'all 0.3s ease !important',
-      '&:hover': {
-        background: 'rgba(135, 206, 235, 0.4) !important',
-        border: '1px solid rgba(135, 206, 235, 0.5) !important',
-        boxShadow: '0 12px 40px rgba(135, 206, 235, 0.25) !important',
-        transform: 'translateY(-2px) !important',
-      },
-      '&:active': {
-        transform: 'translateY(0) !important',
-        boxShadow: '0 4px 16px rgba(135, 206, 235, 0.2) !important',
-      },
+  },
+  buttonPrimary: {
+    background: `${token.colorPrimary} !important`,
+    border: `1px solid ${token.colorPrimary} !important`,
+    borderRadius: token.borderRadius,
+    color: `${token.colorTextLightSolid} !important`,
+    fontWeight: 600,
+    '&:hover': {
+      background: `${token.colorPrimaryActive} !important`,
+      borderColor: `${token.colorPrimaryActive} !important`,
+      color: `${token.colorTextLightSolid} !important`,
     },
-    glassButtonPrimary: {
-      background: 'rgba(135, 206, 235, 0.5) !important',
-      backdropFilter: 'blur(10px) !important',
-      WebkitBackdropFilter: 'blur(10px) !important',
-      border: '1px solid rgba(135, 206, 235, 0.6) !important',
-      borderRadius: '12px !important',
-      boxShadow: '0 8px 32px rgba(135, 206, 235, 0.3) !important',
-      color: '#fff !important',
-      fontWeight: '600 !important',
-      transition: 'all 0.3s ease !important',
-      '&:hover': {
-        background: 'rgba(135, 206, 235, 0.7) !important',
-        border: '1px solid rgba(135, 206, 235, 0.8) !important',
-        boxShadow: '0 12px 40px rgba(135, 206, 235, 0.4) !important',
-        transform: 'translateY(-2px) !important',
-      },
-      '&:active': {
-        transform: 'translateY(0) !important',
-        boxShadow: '0 4px 16px rgba(135, 206, 235, 0.3) !important',
-      },
+  },
+  input: {
+    background: '#ffffff !important',
+    border: `1px solid ${token.colorBorder} !important`,
+    borderRadius: token.borderRadius,
+    '&:hover': {
+      borderColor: `${token.colorPrimary} !important`,
     },
-  };
-});
+    '&:focus': {
+      borderColor: `${token.colorPrimary} !important`,
+      boxShadow: `0 0 0 2px ${token.colorPrimaryBg} !important`,
+    },
+  },
+}));
 const Login: React.FC = () => {
   const [loginType, setLoginType] = useState<'login' | 'register'>('login');
   const { initialState, setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
+  const { token } = theme.useToken();
   const { message } = App.useApp();
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  // 粒子动画效果
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // 设置 canvas 尺寸
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // 粒子类
+    class Particle {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      size: number;
+
+      constructor(w: number, h: number) {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.size = Math.random() * 2 + 1;
+      }
+
+      update(w: number, h: number) {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // 边界反弹
+        if (this.x < 0 || this.x > w) this.vx *= -1;
+        if (this.y < 0 || this.y > h) this.vy *= -1;
+      }
+
+      draw(context: CanvasRenderingContext2D, colorPrimary: string) {
+        context.beginPath();
+        context.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        context.fillStyle = colorPrimary + '40';
+        context.fill();
+      }
+    }
+
+    // 创建粒子
+    const particleCount = Math.floor((canvas.width * canvas.height) / 15000);
+    const particles: Particle[] = [];
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle(canvas.width, canvas.height));
+    }
+
+    // 连接粒子的线段
+    const drawLines = () => {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const maxDistance = 150;
+
+          if (distance < maxDistance) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            const opacity = (1 - distance / maxDistance) * 0.3;
+            ctx.strokeStyle =
+              token.colorPrimary +
+              Math.floor(opacity * 255)
+                .toString(16)
+                .padStart(2, '0');
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+    };
+
+    // 动画循环
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p) => {
+        p.update(canvas.width, canvas.height);
+        p.draw(ctx, token.colorPrimary);
+      });
+      drawLines();
+      requestAnimationFrame(animate);
+    };
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, [token]);
 
   // 如果已登录，跳转到首页
   useEffect(() => {
@@ -187,6 +287,7 @@ const Login: React.FC = () => {
   };
   return (
     <div className={styles.container}>
+      <canvas ref={canvasRef} className={styles.canvas} />
       <Helmet>
         <title>
           {'登录'}
@@ -197,6 +298,8 @@ const Login: React.FC = () => {
         style={{
           flex: '1',
           padding: '32px 0',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <LoginForm
@@ -216,7 +319,7 @@ const Login: React.FC = () => {
               submitText: loginType === 'login' ? '登录' : '注册',
             },
             submitButtonProps: {
-              className: styles.glassButtonPrimary,
+              className: styles.buttonPrimary,
               style: {
                 height: '44px',
                 fontSize: '16px',
@@ -237,9 +340,7 @@ const Login: React.FC = () => {
             <Space>
               <Button
                 className={
-                  loginType === 'login'
-                    ? styles.glassButtonPrimary
-                    : styles.glassButton
+                  loginType === 'login' ? styles.buttonPrimary : styles.button
                 }
                 onClick={() => setLoginType('login')}
               >
@@ -248,8 +349,8 @@ const Login: React.FC = () => {
               <Button
                 className={
                   loginType === 'register'
-                    ? styles.glassButtonPrimary
-                    : styles.glassButton
+                    ? styles.buttonPrimary
+                    : styles.button
                 }
                 onClick={() => setLoginType('register')}
               >
@@ -265,6 +366,7 @@ const Login: React.FC = () => {
                 fieldProps={{
                   size: 'large',
                   prefix: <UserOutlined />,
+                  className: styles.input,
                 }}
                 placeholder={'用户名'}
                 rules={[
@@ -279,6 +381,7 @@ const Login: React.FC = () => {
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined />,
+                  className: styles.input,
                 }}
                 placeholder={'密码'}
                 rules={[
@@ -298,6 +401,7 @@ const Login: React.FC = () => {
                 fieldProps={{
                   size: 'large',
                   prefix: <UserOutlined />,
+                  className: styles.input,
                 }}
                 placeholder={'用户名'}
                 rules={[
@@ -316,6 +420,7 @@ const Login: React.FC = () => {
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined />,
+                  className: styles.input,
                 }}
                 placeholder={'密码'}
                 rules={[
@@ -334,6 +439,7 @@ const Login: React.FC = () => {
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined />,
+                  className: styles.input,
                 }}
                 placeholder={'确认密码'}
                 rules={[

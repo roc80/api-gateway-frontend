@@ -69,7 +69,7 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
       ];
     }
     return columns;
-  }, [columns, renderActions]);
+  }, [actionRef, columns, renderActions]);
 
   const handleRequest = useCallback(
     async (params: any) => {
@@ -93,7 +93,7 @@ export function CrudTable<T extends Record<string, any>, QueryParams = any>(
         total: response.total || 0,
       };
     },
-    [listFn, paramsTransformer],
+    [formRef, listFn, paramsTransformer],
   );
 
   return (
