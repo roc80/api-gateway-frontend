@@ -73,6 +73,7 @@ const ApiVersionList: React.FC = () => {
       render: (_, record) => {
         return record.current ? '是' : '否';
       },
+      hideInSearch: true, //搜索时使用isCurrent 字段
     },
     {
       title: 'HTTP方法',
@@ -99,6 +100,7 @@ const ApiVersionList: React.FC = () => {
           ? JSON.stringify(record.requestParams)
           : '-';
       },
+      hideInSearch: true,
     },
     {
       title: '请求体',
@@ -106,6 +108,7 @@ const ApiVersionList: React.FC = () => {
       render: (_, record) => {
         return record.requestBody ? JSON.stringify(record.requestBody) : '-';
       },
+      hideInSearch: true,
     },
     {
       title: '响应体',
@@ -113,6 +116,7 @@ const ApiVersionList: React.FC = () => {
       render: (_, record) => {
         return record.responseBody ? JSON.stringify(record.responseBody) : '-';
       },
+      hideInSearch: true,
     },
     {
       title: '响应示例',
@@ -122,6 +126,7 @@ const ApiVersionList: React.FC = () => {
           ? JSON.stringify(record.responseExample)
           : '-';
       },
+      hideInSearch: true,
     },
     {
       title: '示例curl',
@@ -129,6 +134,7 @@ const ApiVersionList: React.FC = () => {
       render: (_, record) => {
         return record.exampleCurl || '-';
       },
+      hideInSearch: true,
     },
     {
       title: '示例代码',
@@ -136,6 +142,7 @@ const ApiVersionList: React.FC = () => {
       render: (_, record) => {
         return record.exampleCode ? JSON.stringify(record.exampleCode) : '-';
       },
+      hideInSearch: true,
     },
     {
       title: '认证类型',
@@ -147,10 +154,26 @@ const ApiVersionList: React.FC = () => {
       render: (_, record) => {
         return record.allowInvoke ? '是' : '否';
       },
+      valueType: 'select',
+      valueEnum: {
+        true: { text: '是' },
+        false: { text: '否' },
+      },
     },
     updateTimeColumn<API.InterfaceVersionDto>({
       title: '更新时间',
     }),
+    // 搜索专用字段（避免与分页 current 冲突）
+    {
+      title: '是否当前版本',
+      dataIndex: 'isCurrent',
+      hideInTable: true,
+      valueType: 'select',
+      valueEnum: {
+        true: { text: '是' },
+        false: { text: '否' },
+      },
+    },
   ];
 
   return (
@@ -167,20 +190,34 @@ const ApiVersionList: React.FC = () => {
             total: response.total || 0,
           };
         }}
-        paramsTransformer={(params) => ({
-          page: params.current,
-          size: params.pageSize,
-          request: {
-            // apiId: params.apiId,
-            // version: params.version,
-            // current: false,
-            // httpMethod: params.httpMethod,
-            // path: params.path,
-            // requestHeaders: {},
-            // authType: params.authType,
-            // allowInvoke: params.allowInvoke,
-          },
-        })}
+        paramsTransformer={(params) =>
+          ({
+            page: params.current,
+            size: params.pageSize,
+            request: {
+              apiId: params.apiId ? Number(params.apiId) : undefined,
+              version: params.version,
+              // isCurrent 映射为 current，处理字符串转布尔值
+              current:
+                params.isCurrent === 'true'
+                  ? true
+                  : params.isCurrent === 'false'
+                    ? false
+                    : undefined,
+              httpMethod: params.httpMethod,
+              requestHeaders: params.requestHeaders,
+              path: params.path,
+              authType: params.authType,
+              // allowInvoke 字符串转布尔值
+              allowInvoke:
+                params.allowInvoke === 'true'
+                  ? true
+                  : params.allowInvoke === 'false'
+                    ? false
+                    : undefined,
+            },
+          }) as API.PageRequestDtoInterfaceVersionQueryDto
+        }
         showDetail={false}
         showBatchActions
         batchActions={[
