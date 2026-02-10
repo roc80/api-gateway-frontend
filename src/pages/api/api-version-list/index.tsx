@@ -1,5 +1,5 @@
-import type { ProColumns } from '@ant-design/pro-components';
 import {
+  type ProColumns,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
@@ -190,8 +190,13 @@ const ApiVersionList: React.FC = () => {
             total: response.total || 0,
           };
         }}
-        paramsTransformer={(params) =>
-          ({
+        paramsTransformer={(params) => {
+          // 验证 apiId 是否为数字
+          if (params.apiId && !/^\d+$/.test(params.apiId)) {
+            messageApi.error('接口ID必须是数字');
+            throw new Error('接口ID必须是数字');
+          }
+          return {
             page: params.current,
             size: params.pageSize,
             request: {
@@ -216,8 +221,8 @@ const ApiVersionList: React.FC = () => {
                     ? false
                     : undefined,
             },
-          }) as API.PageRequestDtoInterfaceVersionQueryDto
-        }
+          } as API.PageRequestDtoInterfaceVersionQueryDto;
+        }}
         showDetail={false}
         showBatchActions
         batchActions={[
@@ -434,7 +439,7 @@ const ApiVersionList: React.FC = () => {
               label={'示例curl'}
               width="xl"
               fieldProps={{ rows: 2 }}
-              placeholder="curl -X POST http://example.com/api"
+              placeholder="curl -X POST https://example.com/api"
             />
             <ProFormTextArea
               name="exampleCode"
