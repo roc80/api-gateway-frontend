@@ -2,6 +2,7 @@ import { useRequest } from '@umijs/max';
 import { Table, Button, Tag, Space, Popconfirm, message, Card, Modal, Form, Input, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
+import dayjs from 'dayjs';
 import { searchInterfaceVersion, updateInterfaceVersion, createInterfaceVersion, deleteInterfaceVersion } from '@/services/api-gateway/interfaceVersionController';
 
 // TODO: 后端需要提供切换当前版本接口
@@ -30,7 +31,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
   const [editingVersion, setEditingVersion] = useState<any>(null);
   const [form] = Form.useForm();
 
-  const { data, loading, refetch } = useRequest(
+  const { data, loading, refresh } = useRequest(
     () =>
       searchInterfaceVersion({
         page: 1,
@@ -46,7 +47,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
     },
   );
 
-  const versions = data?.data || [];
+  const versions = Array.isArray(data) ? data : (data?.data || []);
 
   // 切换当前版本
   const handleSetCurrent = async (record: any) => {
@@ -73,7 +74,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
       );
 
       messageApi.success('切换成功');
-      refetch();
+      refresh();
     } catch (error) {
       messageApi.error('切换失败');
     }
@@ -84,7 +85,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
     try {
       await deleteInterfaceVersion({ id });
       messageApi.success('删除成功');
-      refetch();
+      refresh();
     } catch (error) {
       messageApi.error('删除失败');
     }
@@ -95,18 +96,30 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
     try {
       const values = await form.validateFields();
 
+      // 如果设为当前版本，先将其他版本设为非当前
+      if (values.current) {
+        for (const v of versions) {
+          if (v.current && v.id !== editingVersion?.id) {
+            await updateInterfaceVersion(
+              { id: v.id },
+              { current: false, httpMethod: v.httpMethod, path: v.path, allowInvoke: v.allowInvoke },
+            );
+          }
+        }
+      }
+
       if (editingVersion) {
         // 编辑
         await updateInterfaceVersion(
           { id: editingVersion.id },
           {
             ...values,
-            requestHeaders: values.requestHeaders ? JSON.parse(values.requestHeaders) : {},
-            requestParams: values.requestParams ? JSON.parse(values.requestParams) : {},
-            requestBody: values.requestBody ? JSON.parse(values.requestBody) : undefined,
-            responseBody: values.responseBody ? JSON.parse(values.responseBody) : undefined,
-            responseExample: values.responseExample ? JSON.parse(values.responseExample) : undefined,
-            exampleCode: values.exampleCode ? JSON.parse(values.exampleCode) : undefined,
+            requestHeaders: values.requestHeaders || '{}',
+            requestParams: values.requestParams || '{}',
+            requestBody: values.requestBody || '{}',
+            responseBody: values.responseBody || '{}',
+            responseExample: values.responseExample || '{}',
+            exampleCode: values.exampleCode || '{}',
           },
         );
         messageApi.success('更新成功');
@@ -115,12 +128,12 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
         await createInterfaceVersion({
           apiId: interfaceId,
           ...values,
-          requestHeaders: values.requestHeaders ? JSON.parse(values.requestHeaders) : {},
-          requestParams: values.requestParams ? JSON.parse(values.requestParams) : {},
-          requestBody: values.requestBody ? JSON.parse(values.requestBody) : undefined,
-          responseBody: values.responseBody ? JSON.parse(values.responseBody) : undefined,
-          responseExample: values.responseExample ? JSON.parse(values.responseExample) : undefined,
-          exampleCode: values.exampleCode ? JSON.parse(values.exampleCode) : undefined,
+          requestHeaders: values.requestHeaders || '{}',
+          requestParams: values.requestParams || '{}',
+          requestBody: values.requestBody || '{}',
+          responseBody: values.responseBody || '{}',
+          responseExample: values.responseExample || '{}',
+          exampleCode: values.exampleCode || '{}',
         });
         messageApi.success('创建成功');
       }
@@ -128,7 +141,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
       setIsModalVisible(false);
       setEditingVersion(null);
       form.resetFields();
-      refetch();
+      refresh();
     } catch (error: any) {
       messageApi.error(error.message || '操作失败');
     }
@@ -138,13 +151,21 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
   const openModal = (record?: any) => {
     if (record) {
       setEditingVersion(record);
+      // 处理 requestHeaders 和 requestParams - 如果是对象则转字符串，否则直接使用
+      const requestHeadersValue = typeof record.requestHeaders === 'object'
+        ? JSON.stringify(record.requestHeaders, null, 2)
+        : (record.requestHeaders || '{}');
+      const requestParamsValue = typeof record.requestParams === 'object'
+        ? JSON.stringify(record.requestParams, null, 2)
+        : (record.requestParams || '{}');
+
       form.setFieldsValue({
         ...record,
-        requestHeaders: record.requestHeaders ? JSON.stringify(record.requestHeaders, null, 2) : '{}',
-        requestParams: record.requestParams ? JSON.stringify(record.requestParams, null, 2) : '{}',
-        requestBody: record.requestBody ? JSON.stringify(record.requestBody, null, 2) : '',
-        responseBody: record.responseBody ? JSON.stringify(record.responseBody, null, 2) : '',
-        responseExample: record.responseExample ? JSON.stringify(record.responseExample, null, 2) : '',
+        requestHeaders: requestHeadersValue,
+        requestParams: requestParamsValue,
+        requestBody: record.requestBody ? JSON.stringify(record.requestBody, null, 2) : '{}',
+        responseBody: record.responseBody ? JSON.stringify(record.responseBody, null, 2) : '{}',
+        responseExample: record.responseExample ? JSON.stringify(record.responseExample, null, 2) : '{}',
         exampleCode: record.exampleCode ? JSON.stringify(record.exampleCode, null, 2) : '{}',
       });
     } else {
@@ -159,6 +180,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
       title: '版本号',
       dataIndex: 'version',
       key: 'version',
+      width: 100,
       render: (text, record) => (
         <Space>
           {text}
@@ -170,6 +192,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
       title: '请求方法',
       dataIndex: 'httpMethod',
       key: 'httpMethod',
+      width: 100,
       render: (text) => {
         const colors: Record<string, string> = {
           GET: 'green',
@@ -185,24 +208,69 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
       title: '路径',
       dataIndex: 'path',
       key: 'path',
+      width: 200,
+      ellipsis: true,
       render: (text) => <code>{text}</code>,
+    },
+    {
+      title: '认证类型',
+      dataIndex: 'authType',
+      key: 'authType',
+      width: 100,
+      render: (text) => text || 'NONE',
     },
     {
       title: '允许调用',
       dataIndex: 'allowInvoke',
       key: 'allowInvoke',
+      width: 100,
       render: (text) => (
         <Tag color={text ? 'success' : 'warning'}>{text ? '是' : '否'}</Tag>
       ),
     },
     {
+      title: '请求头',
+      dataIndex: 'requestHeaders',
+      key: 'requestHeaders',
+      width: 150,
+      ellipsis: true,
+      render: (text) => text || '-',
+    },
+    {
+      title: '请求参数',
+      dataIndex: 'requestParams',
+      key: 'requestParams',
+      width: 150,
+      ellipsis: true,
+      render: (text) => text || '-',
+    },
+    {
+      title: '请求体',
+      dataIndex: 'requestBody',
+      key: 'requestBody',
+      width: 150,
+      ellipsis: true,
+      render: (text) => text || '-',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      key: 'createTime',
+      width: 180,
+      render: (text) => text ? dayjs(text).format('YYYY-MM-DD HH:mm:ss') : '-',
+    },
+    {
       title: '更新时间',
       dataIndex: 'updateTime',
       key: 'updateTime',
+      width: 180,
+      render: (text) => text ? dayjs(text).format('YYYY-MM-DD HH:mm:ss') : '-',
     },
     {
       title: '操作',
       key: 'action',
+      width: 150,
+      fixed: 'right',
       render: (_, record) => (
         <Space>
           {!record.current && (
@@ -215,7 +283,6 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
               <a>设为当前</a>
             </Popconfirm>
           )}
-          <a onClick={() => onSelectVersion(record.id)}>调试</a>
           <a onClick={() => openModal(record)}>编辑</a>
           {!record.current && (
             <Popconfirm
@@ -250,6 +317,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
           loading={loading}
           pagination={false}
           size="small"
+          scroll={{ x: 1500 }}
         />
       </Card>
 
@@ -312,6 +380,25 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
               <Option value="API_KEY">API_KEY</Option>
               <Option value="OAUTH2">OAUTH2</Option>
             </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="requestHeaders"
+            label="请求头 (JSON)"
+            rules={[
+              {
+                validator: async (_, value) => {
+                  if (!value) return;
+                  try {
+                    JSON.parse(value);
+                  } catch {
+                    throw new Error('请输入有效的 JSON');
+                  }
+                },
+              },
+            ]}
+          >
+            <Input.TextArea rows={3} placeholder='{"Content-Type": "application/json"}' />
           </Form.Item>
 
           <Form.Item

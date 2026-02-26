@@ -253,14 +253,14 @@ const ApiVersionList: React.FC = () => {
                 authType: formData.authType || values.authType,
                 allowInvoke: formData.allowInvoke ?? values.allowInvoke,
                 requestHeaders:
-                  formData.requestHeaders ?? values.requestHeaders,
-                requestParams: formData.requestParams ?? values.requestParams,
-                requestBody: formData.requestBody ?? values.requestBody,
-                responseBody: formData.responseBody ?? values.responseBody,
+                  formData.requestHeaders || values.requestHeaders || '{}',
+                requestParams: formData.requestParams || values.requestParams || '{}',
+                requestBody: formData.requestBody || values.requestBody || '{}',
+                responseBody: formData.responseBody || values.responseBody || '{}',
                 responseExample:
-                  formData.responseExample ?? values.responseExample,
-                exampleCurl: formData.exampleCurl || values.exampleCurl,
-                exampleCode: formData.exampleCode ?? values.exampleCode,
+                  formData.responseExample || values.responseExample || '{}',
+                exampleCurl: formData.exampleCurl || values.exampleCurl || '',
+                exampleCode: formData.exampleCode || values.exampleCode || '{}',
               },
             ]}
             initialValuesTransformer={(values) => ({
@@ -269,13 +269,25 @@ const ApiVersionList: React.FC = () => {
               path: values.path,
               authType: values.authType,
               allowInvoke: values.allowInvoke,
-              requestHeaders: values.requestHeaders,
-              requestParams: values.requestParams,
-              requestBody: values.requestBody,
-              responseBody: values.responseBody,
-              responseExample: values.responseExample,
-              exampleCurl: values.exampleCurl,
-              exampleCode: values.exampleCode,
+              requestHeaders: typeof values.requestHeaders === 'object'
+                ? JSON.stringify(values.requestHeaders, null, 2)
+                : (values.requestHeaders || '{}'),
+              requestParams: typeof values.requestParams === 'object'
+                ? JSON.stringify(values.requestParams, null, 2)
+                : (values.requestParams || '{}'),
+              requestBody: typeof values.requestBody === 'object'
+                ? JSON.stringify(values.requestBody, null, 2)
+                : (values.requestBody || '{}'),
+              responseBody: typeof values.responseBody === 'object'
+                ? JSON.stringify(values.responseBody, null, 2)
+                : (values.responseBody || '{}'),
+              responseExample: typeof values.responseExample === 'object'
+                ? JSON.stringify(values.responseExample, null, 2)
+                : (values.responseExample || '{}'),
+              exampleCurl: values.exampleCurl || '',
+              exampleCode: typeof values.exampleCode === 'object'
+                ? JSON.stringify(values.exampleCode, null, 2)
+                : (values.exampleCode || '{}'),
             })}
           >
             <ProFormSwitch name="current" label="是否当前版本" />
@@ -353,25 +365,13 @@ const ApiVersionList: React.FC = () => {
               path: formData.path,
               current: formData.current,
               authType: formData.authType,
-              requestHeaders: formData.requestHeaders
-                ? JSON.parse(formData.requestHeaders as string)
-                : undefined,
-              requestParams: formData.requestParams
-                ? JSON.parse(formData.requestParams as string)
-                : undefined,
-              requestBody: formData.requestBody
-                ? JSON.parse(formData.requestBody as string)
-                : undefined,
-              responseBody: formData.responseBody
-                ? JSON.parse(formData.responseBody as string)
-                : undefined,
-              responseExample: formData.responseExample
-                ? JSON.parse(formData.responseExample as string)
-                : undefined,
-              exampleCurl: formData.exampleCurl,
-              exampleCode: formData.exampleCode
-                ? JSON.parse(formData.exampleCode as string)
-                : undefined,
+              requestHeaders: formData.requestHeaders || '{}',
+              requestParams: formData.requestParams || '{}',
+              requestBody: formData.requestBody || '{}',
+              responseBody: formData.responseBody || '{}',
+              responseExample: formData.responseExample || '{}',
+              exampleCurl: formData.exampleCurl || '',
+              exampleCode: formData.exampleCode || '{}',
             })}
           >
             <ProFormText

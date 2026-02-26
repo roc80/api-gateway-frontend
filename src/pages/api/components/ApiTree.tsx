@@ -1,13 +1,14 @@
 import { useRequest, useModel } from '@umijs/max';
-import { Tree, Card, Input, Empty, Spin, Button, Modal, Form, message, Space } from 'antd';
+import { Tree, Card, Input, Empty, Spin, Button, Modal, Form, message, Space, Popconfirm } from 'antd';
 import type { DataNode, TreeProps } from 'antd';
 import { useState, useMemo, useCallback } from 'react';
-import { searchInterfaces, create } from '@/services/api-gateway/interfaceController';
+import { searchInterfaces, create, deleteUsingDelete } from '@/services/api-gateway/interfaceController';
 import {
   FolderOutlined,
   FolderOpenOutlined,
   ApiOutlined,
   PlusOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 
 const { TextArea } = Input;
@@ -89,7 +90,23 @@ const ApiTree: React.FC<ApiTreeProps> = ({
           selectable: false,
           icon: <FolderOutlined />,
           children: filteredItems.map((item: any) => ({
-            title: item.name,
+            title: (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: 8 }}>
+                <span>{item.name}</span>
+                <Popconfirm
+                  title="确认删除"
+                  description="确定要删除这个接口吗？"
+                  onConfirm={(e) => handleDelete(item.id, e as any)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <DeleteOutlined
+                    style={{ fontSize: 12, color: '#ff4d4f' }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </Popconfirm>
+              </div>
+            ),
             key: `interface-${item.id}`,
             selectable: true,
             icon: <ApiOutlined />,
@@ -119,6 +136,22 @@ const ApiTree: React.FC<ApiTreeProps> = ({
       }
     }
   };
+
+  // 删除接口
+  const handleDelete = useCallback(async (interfaceId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await deleteUsingDelete({ id: interfaceId });
+      messageApi.success('删除成功');
+      // 如果删除的是当前选中的接口，清空选中状态
+      if (selectedInterfaceId === interfaceId) {
+        onSelectInterface(0 as any); // 触发清空
+      }
+      refetch();
+    } catch (error: any) {
+      messageApi.error(error.message || '删除失败');
+    }
+  }, [selectedInterfaceId, refetch, messageApi, onSelectInterface]);
 
   // 自动展开所有分类
   const expandAll = useCallback(() => {
