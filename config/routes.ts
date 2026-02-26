@@ -21,11 +21,6 @@ export default [
         name: '角色管理',
         component: './user/role-list',
       },
-      {
-        path: '/admin/api-manage/api-call-log-list',
-        name: 'API调用日志',
-        component: './api/api-call-log-list',
-      },
     ],
   },
   {
@@ -34,14 +29,27 @@ export default [
     icon: 'api',
     routes: [
       {
+        path: '/api/workspace',
+        name: '工作台',
+        component: './api/workspace',
+      },
+      {
         path: '/api/list',
         name: 'API列表',
         component: './api/api-list',
+        hideInMenu: true,
       },
       {
         path: '/api/version',
         name: 'API版本',
         component: './api/api-version-list',
+        hideInMenu: true,
+      },
+      {
+        path: '/api/debug',
+        name: '在线调试',
+        component: './api/api-debug',
+        hideInMenu: true,
       },
     ],
   },
