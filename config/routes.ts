@@ -35,9 +35,8 @@ export default [
       },
       {
         path: '/api/list',
-        name: 'API列表',
+        name: '接口列表',
         component: './api/api-list',
-        hideInMenu: true,
       },
       {
         path: '/api/version',

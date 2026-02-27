@@ -11,8 +11,6 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 
-const { TextArea } = Input;
-
 interface ApiTreeProps {
   onSelectInterface: (interfaceId: number) => void;
   selectedInterfaceId: number | null;
@@ -85,13 +83,40 @@ const ApiTree: React.FC<ApiTreeProps> = ({
         );
 
         return {
-          title: `${category} (${filteredItems.length})`,
+          title: (
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                const key = `category-${category}`;
+                const newExpandedKeys = expandedKeys.includes(key)
+                  ? expandedKeys.filter(k => k !== key)
+                  : [...expandedKeys, key];
+                setExpandedKeys(newExpandedKeys);
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              {category} ({filteredItems.length})
+            </span>
+          ),
           key: `category-${category}`,
           selectable: false,
           icon: <FolderOutlined />,
           children: filteredItems.map((item: any) => ({
             title: (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: 8 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingRight: 8,
+                  cursor: 'pointer',
+                  flex: 1,
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectInterface(item.id);
+                }}
+              >
                 <span>{item.name}</span>
                 <Popconfirm
                   title="确认删除"
@@ -101,7 +126,7 @@ const ApiTree: React.FC<ApiTreeProps> = ({
                   cancelText="取消"
                 >
                   <DeleteOutlined
-                    style={{ fontSize: 12, color: '#ff4d4f' }}
+                    style={{ fontSize: 12, color: '#ff4d4f', padding: '4px', cursor: 'pointer' }}
                     onClick={(e) => e.stopPropagation()}
                   />
                 </Popconfirm>
@@ -269,7 +294,7 @@ const ApiTree: React.FC<ApiTreeProps> = ({
             <Input placeholder="例如: 获取用户信息" />
           </Form.Item>
           <Form.Item name="description" label="接口描述">
-            <TextArea rows={3} placeholder="接口功能描述" />
+            <Input.TextArea rows={3} placeholder="接口功能描述" />
           </Form.Item>
           <Form.Item name="category" label="接口分类">
             <Input placeholder="例如: 用户类、订单类" />

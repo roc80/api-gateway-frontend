@@ -9,9 +9,6 @@ import { searchInterfaceVersion } from '@/services/api-gateway/interfaceVersionC
 // Request: { versionId: Long, requestParams: Map, requestBody: Map }
 // Response: ApiResponse
 
-const { TextArea } = Input;
-const { Option } = Select;
-
 interface ApiDebugTabProps {
   interfaceId: number;
   versionId: number | null;
@@ -37,6 +34,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
   const { data: interfaceData, loading: interfaceLoading } = useRequest(
     () => getById({ id: interfaceId }),
     {
+      refreshDeps: [interfaceId],
       onError: () => {
         // 静默处理
       },
@@ -54,6 +52,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
         },
       }),
     {
+      refreshDeps: [interfaceId],
       onError: () => {
         // 静默处理
       },
@@ -180,14 +179,12 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
               style={{ width: 200 }}
               value={selectedVersionId}
               onChange={setSelectedVersionId}
-            >
-              {versions.map((v: any) => (
-                <Option key={v.id} value={v.id}>
-                  {v.version}
-                  {v.current && ' (当前)'}
-                </Option>
-              ))}
-            </Select>
+              options={versions.map((v: any) => ({
+                key: v.id,
+                value: v.id,
+                label: `${v.version}${v.current ? ' (当前)' : ''}`,
+              }))}
+            />
           </Space>
         </Card>
       )}
@@ -246,7 +243,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
                 },
               ]}
             >
-              <TextArea
+              <Input.TextArea
                 rows={10}
                 placeholder={JSON.stringify(requestBodySchema, null, 2)}
                 disabled={!currentVersion.allowInvoke}

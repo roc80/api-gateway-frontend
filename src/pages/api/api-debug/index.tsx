@@ -4,8 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { getById } from '@/services/api-gateway/interfaceController';
 import { searchInterfaceVersion } from '@/services/api-gateway/interfaceVersionController';
 
-const { TextArea } = Input;
-
 interface ApiDebugProps {
   // 从 URL 参数获取 interfaceId
   interfaceId?: string;
@@ -188,7 +186,7 @@ const ApiDebug: React.FC<ApiDebugProps> = () => {
             {Object.keys(requestBody).length > 0 && (
               <Card type="inner" title="请求体" size="small" style={{ marginBottom: 16 }}>
                 <Form.Item name="body" label="Body (JSON)">
-                  <TextArea
+                  <Input.TextArea
                     rows={10}
                     placeholder={JSON.stringify(requestBody, null, 2)}
                   />

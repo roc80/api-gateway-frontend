@@ -1,14 +1,14 @@
 import { useRequest } from '@umijs/max';
-import { Table, Button, Tag, Space, Popconfirm, message, Card, Modal, Form, Input, Select, Switch } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
-import { useState } from 'react';
-import dayjs from 'dayjs';
+import { Button, Tag, Space, Popconfirm, message, Modal, Form, Input, Select, Switch } from 'antd';
+import type { ProColumns } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
+import { useState, useRef } from 'react';
+import type { ActionType } from '@ant-design/pro-components';
+import { createTimeColumn, updateTimeColumn } from '@/components/CrudTable';
 import { searchInterfaceVersion, updateInterfaceVersion, createInterfaceVersion, deleteInterfaceVersion } from '@/services/api-gateway/interfaceVersionController';
 
 // TODO: 后端需要提供切换当前版本接口
 // PATCH /interfaces/versions/{id}/set-current
-
-const { Option } = Select;
 
 interface ApiVersionTabProps {
   interfaceId: number;
@@ -26,6 +26,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
   onSelectVersion,
   onSwitchToDebug,
 }) => {
+  const actionRef = useRef<ActionType>();
   const [messageApi, messageContextHolder] = message.useMessage();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingVersion, setEditingVersion] = useState<any>(null);
@@ -41,6 +42,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
         },
       }),
     {
+      refreshDeps: [interfaceId],
       onError: () => {
         // 静默处理
       },
@@ -175,15 +177,14 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
     setIsModalVisible(true);
   };
 
-  const columns: ColumnsType<any> = [
+  const columns: ProColumns<any>[] = [
     {
       title: '版本号',
       dataIndex: 'version',
-      key: 'version',
       width: 100,
-      render: (text, record) => (
+      render: (_, record) => (
         <Space>
-          {text}
+          {record.version}
           {record.current && <Tag color="blue">当前</Tag>}
         </Space>
       ),
@@ -191,9 +192,8 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
     {
       title: '请求方法',
       dataIndex: 'httpMethod',
-      key: 'httpMethod',
       width: 100,
-      render: (text) => {
+      render: (_, record) => {
         const colors: Record<string, string> = {
           GET: 'green',
           POST: 'blue',
@@ -201,74 +201,58 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
           DELETE: 'red',
           PATCH: 'purple',
         };
-        return <Tag color={colors[text]}>{text}</Tag>;
+        return <Tag color={colors[record.httpMethod]}>{record.httpMethod}</Tag>;
       },
     },
     {
       title: '路径',
       dataIndex: 'path',
-      key: 'path',
       width: 200,
       ellipsis: true,
-      render: (text) => <code>{text}</code>,
+      render: (_, record) => <code>{record.path}</code>,
     },
     {
       title: '认证类型',
       dataIndex: 'authType',
-      key: 'authType',
       width: 100,
-      render: (text) => text || 'NONE',
+      render: (_, record) => record.authType || 'NONE',
     },
     {
       title: '允许调用',
       dataIndex: 'allowInvoke',
-      key: 'allowInvoke',
       width: 100,
-      render: (text) => (
-        <Tag color={text ? 'success' : 'warning'}>{text ? '是' : '否'}</Tag>
+      render: (_, record) => (
+        <Tag color={record.allowInvoke ? 'success' : 'warning'}>
+          {record.allowInvoke ? '是' : '否'}
+        </Tag>
       ),
     },
     {
       title: '请求头',
       dataIndex: 'requestHeaders',
-      key: 'requestHeaders',
       width: 150,
       ellipsis: true,
-      render: (text) => text || '-',
+      render: (_, record) => record.requestHeaders || '-',
     },
     {
       title: '请求参数',
       dataIndex: 'requestParams',
-      key: 'requestParams',
       width: 150,
       ellipsis: true,
-      render: (text) => text || '-',
+      render: (_, record) => record.requestParams || '-',
     },
     {
       title: '请求体',
       dataIndex: 'requestBody',
-      key: 'requestBody',
       width: 150,
       ellipsis: true,
-      render: (text) => text || '-',
+      render: (_, record) => record.requestBody || '-',
     },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
-      width: 180,
-      render: (text) => text ? dayjs(text).format('YYYY-MM-DD HH:mm:ss') : '-',
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updateTime',
-      key: 'updateTime',
-      width: 180,
-      render: (text) => text ? dayjs(text).format('YYYY-MM-DD HH:mm:ss') : '-',
-    },
+    createTimeColumn<any>(),
+    updateTimeColumn<any>(),
     {
       title: '操作',
-      key: 'action',
+      valueType: 'option',
       width: 150,
       fixed: 'right',
       render: (_, record) => (
@@ -302,24 +286,27 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
   return (
     <div>
       {messageContextHolder}
-      <Card
-        title="版本列表"
-        extra={
-          <Button type="primary" onClick={() => openModal()}>
+      <ProTable<any>
+        columns={columns}
+        dataSource={versions}
+        rowKey="id"
+        loading={loading}
+        pagination={false}
+        search={false}
+        toolBarRender={() => [
+          <Button key="create" type="primary" onClick={() => openModal()}>
             新建版本
-          </Button>
-        }
-      >
-        <Table
-          columns={columns}
-          dataSource={versions}
-          rowKey="id"
-          loading={loading}
-          pagination={false}
-          size="small"
-          scroll={{ x: 1500 }}
-        />
-      </Card>
+          </Button>,
+        ]}
+        options={{
+          density: false,
+          fullScreen: false,
+          reload: () => refresh(),
+          setting: true,
+        }}
+        actionRef={actionRef}
+        scroll={{ x: 1500 }}
+      />
 
       {/* 新建/编辑弹窗 */}
       <Modal
@@ -349,13 +336,15 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
             label="请求方法"
             rules={[{ required: true, message: '请选择请求方法' }]}
           >
-            <Select>
-              <Option value="GET">GET</Option>
-              <Option value="POST">POST</Option>
-              <Option value="PUT">PUT</Option>
-              <Option value="DELETE">DELETE</Option>
-              <Option value="PATCH">PATCH</Option>
-            </Select>
+            <Select
+              options={[
+                { value: 'GET', label: 'GET' },
+                { value: 'POST', label: 'POST' },
+                { value: 'PUT', label: 'PUT' },
+                { value: 'DELETE', label: 'DELETE' },
+                { value: 'PATCH', label: 'PATCH' },
+              ]}
+            />
           </Form.Item>
 
           <Form.Item
@@ -375,11 +364,14 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
           </Form.Item>
 
           <Form.Item name="authType" label="认证类型">
-            <Select placeholder="默认为 NONE">
-              <Option value="NONE">NONE</Option>
-              <Option value="API_KEY">API_KEY</Option>
-              <Option value="OAUTH2">OAUTH2</Option>
-            </Select>
+            <Select
+              placeholder="默认为 NONE"
+              options={[
+                { value: 'NONE', label: 'NONE' },
+                { value: 'API_KEY', label: 'API_KEY' },
+                { value: 'OAUTH2', label: 'OAUTH2' },
+              ]}
+            />
           </Form.Item>
 
           <Form.Item
