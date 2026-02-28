@@ -2,12 +2,92 @@ import { useRequest } from '@umijs/max';
 import { Button, Tag, Space, Popconfirm, message, Modal, Form, Input, Select, Switch } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { ActionType } from '@ant-design/pro-components';
 import { createTimeColumn, updateTimeColumn } from '@/components/CrudTable';
 import { searchInterfaceVersion, updateInterfaceVersion, createInterfaceVersion, deleteInterfaceVersion } from '@/services/api-gateway/interfaceVersionController';
 
-// TODO: 后端需要提供切换当前版本接口
+// JSON 编辑器组件 - 输入对象，显示为格式化的 JSON 字符串
+const JsonEditor: React.FC<{
+  value?: any;
+  onChange?: (value: any) => void;
+  placeholder?: string;
+  rows?: number;
+}> = ({ value, onChange, placeholder = '{}', rows = 3 }) => {
+  // 初始化文本值
+  const getInitialTextValue = (val: any) => {
+    // null 或 undefined 显示为空
+    if (val === null || val === undefined) return '';
+    // 空对象显示为格式化的 {}
+    if (typeof val === 'object' && val !== null && Object.keys(val).length === 0) {
+      return '{}';
+    }
+    // 有内容的对象或字符串
+    if (typeof val === 'object' && val !== null) {
+      return JSON.stringify(val, null, 2);
+    }
+    if (typeof val === 'string') {
+      try {
+        const parsed = JSON.parse(val);
+        if (typeof parsed === 'object') {
+          return Object.keys(parsed).length > 0 ? JSON.stringify(parsed, null, 2) : '{}';
+        }
+        return val;
+      } catch {
+        return val;
+      }
+    }
+    return '';
+  };
+
+  const [textValue, setTextValue] = useState('');
+  const [error, setError] = useState('');
+  const prevValueRef = useRef<any>();
+
+  // 当 value 变化时更新文本显示
+  useEffect(() => {
+    // 只有当 value 真正变化时才更新（避免用户输入时被覆盖）
+    if (JSON.stringify(value) !== JSON.stringify(prevValueRef.current)) {
+      prevValueRef.current = value;
+      setTextValue(getInitialTextValue(value));
+    }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setTextValue(newValue);
+
+    // 实时校验并更新值
+    if (!newValue.trim()) {
+      setError('');
+      onChange?.(undefined);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(newValue);
+      setError('');
+      onChange?.(parsed);
+    } catch (err) {
+      setError('JSON 格式错误');
+    }
+  };
+
+  return (
+    <div>
+      <Input.TextArea
+        value={textValue}
+        onChange={handleChange}
+        placeholder={placeholder}
+        rows={rows}
+        status={error ? 'error' : undefined}
+      />
+      {error && <div style={{ color: '#ff4d4f', fontSize: 12, marginTop: 4 }}>{error}</div>}
+    </div>
+  );
+};
+
+// TODO@lp: 后端需要提供切换当前版本接口
 // PATCH /interfaces/versions/{id}/set-current
 
 interface ApiVersionTabProps {
@@ -15,6 +95,7 @@ interface ApiVersionTabProps {
   versionId: number | null;
   onSelectVersion: (versionId: number) => void;
   onSwitchToDebug?: () => void;
+  onVersionChange?: () => void;
 }
 
 /**
@@ -25,6 +106,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
   versionId,
   onSelectVersion,
   onSwitchToDebug,
+  onVersionChange,
 }) => {
   const actionRef = useRef<ActionType>();
   const [messageApi, messageContextHolder] = message.useMessage();
@@ -47,7 +129,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
         // 静默处理
       },
     },
-  );
+  ) as { data: any; loading: boolean; refresh: () => void };
 
   const versions = Array.isArray(data) ? data : (data?.data || []);
 
@@ -55,7 +137,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
   const handleSetCurrent = async (record: any) => {
     if (record.current) return;
 
-    // TODO: 调用后端切换版本接口
+    // TODO@lp: 调用后端切换版本接口
     // await setCurrentVersion({ id: record.id });
 
     // 临时逻辑：先将其他版本设为非当前，再设置当前版本
@@ -77,8 +159,19 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
 
       messageApi.success('切换成功');
       refresh();
-    } catch (error) {
-      messageApi.error('切换失败');
+      onVersionChange?.();
+    } catch (error: any) {
+      let errorMsg = '切换失败';
+      if (error?.data?.detail) {
+        errorMsg = error.data.detail;
+      } else if (error?.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
+      } else if (error?.detail) {
+        errorMsg = error.detail;
+      } else if (error?.message) {
+        errorMsg = error.message;
+      }
+      messageApi.error(errorMsg);
     }
   };
 
@@ -88,8 +181,19 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
       await deleteInterfaceVersion({ id });
       messageApi.success('删除成功');
       refresh();
-    } catch (error) {
-      messageApi.error('删除失败');
+      onVersionChange?.();
+    } catch (error: any) {
+      let errorMsg = '删除失败';
+      if (error?.data?.detail) {
+        errorMsg = error.data.detail;
+      } else if (error?.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
+      } else if (error?.detail) {
+        errorMsg = error.detail;
+      } else if (error?.message) {
+        errorMsg = error.message;
+      }
+      messageApi.error(errorMsg);
     }
   };
 
@@ -97,6 +201,15 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
+      console.log('handleSave - form values:', values);
+
+      // 将 JSON 对象字段转为字符串
+      const jsonify = (obj: any) => {
+        if (!obj || typeof obj === 'string') {
+          return obj || '{}';
+        }
+        return JSON.stringify(obj);
+      };
 
       // 如果设为当前版本，先将其他版本设为非当前
       if (values.current) {
@@ -112,31 +225,44 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
 
       if (editingVersion) {
         // 编辑
+        const updateData = {
+          version: values.version,
+          httpMethod: values.httpMethod,
+          path: values.path,
+          current: values.current || false,
+          allowInvoke: values.allowInvoke !== undefined ? values.allowInvoke : true,
+          authType: values.authType || 'NONE',
+          requestHeaders: jsonify(values.requestHeaders),
+          requestParams: jsonify(values.requestParams),
+          requestBody: jsonify(values.requestBody),
+          responseBody: jsonify(values.responseBody),
+          responseExample: jsonify(values.responseExample),
+          exampleCode: jsonify(values.exampleCode),
+        };
+        console.log('handleSave - updateData:', updateData);
+        console.log('handleSave - editingVersion:', editingVersion);
+
         await updateInterfaceVersion(
           { id: editingVersion.id },
-          {
-            ...values,
-            requestHeaders: values.requestHeaders || '{}',
-            requestParams: values.requestParams || '{}',
-            requestBody: values.requestBody || '{}',
-            responseBody: values.responseBody || '{}',
-            responseExample: values.responseExample || '{}',
-            exampleCode: values.exampleCode || '{}',
-          },
+          updateData,
         );
         messageApi.success('更新成功');
       } else {
         // 新建
         await createInterfaceVersion({
           apiId: interfaceId,
-          ...values,
-          requestHeaders: values.requestHeaders || '{}',
-          requestParams: values.requestParams || '{}',
-          requestBody: values.requestBody || '{}',
-          responseBody: values.responseBody || '{}',
-          responseExample: values.responseExample || '{}',
-          exampleCode: values.exampleCode || '{}',
-        });
+          version: values.version,
+          httpMethod: values.httpMethod,
+          path: values.path,
+          current: values.current || false,
+          authType: values.authType || 'NONE',
+          requestHeaders: jsonify(values.requestHeaders),
+          requestParams: jsonify(values.requestParams),
+          requestBody: jsonify(values.requestBody),
+          responseBody: jsonify(values.responseBody),
+          responseExample: jsonify(values.responseExample),
+          exampleCode: jsonify(values.exampleCode),
+        } as any);
         messageApi.success('创建成功');
       }
 
@@ -144,8 +270,20 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
       setEditingVersion(null);
       form.resetFields();
       refresh();
+      onVersionChange?.();
     } catch (error: any) {
-      messageApi.error(error.message || '操作失败');
+      // 提取错误信息，优先显示 detail 字段
+      let errorMsg = '操作失败';
+      if (error?.data?.detail) {
+        errorMsg = error.data.detail;
+      } else if (error?.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
+      } else if (error?.detail) {
+        errorMsg = error.detail;
+      } else if (error?.message) {
+        errorMsg = error.message;
+      }
+      messageApi.error(errorMsg);
     }
   };
 
@@ -153,23 +291,42 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
   const openModal = (record?: any) => {
     if (record) {
       setEditingVersion(record);
-      // 处理 requestHeaders 和 requestParams - 如果是对象则转字符串，否则直接使用
-      const requestHeadersValue = typeof record.requestHeaders === 'object'
-        ? JSON.stringify(record.requestHeaders, null, 2)
-        : (record.requestHeaders || '{}');
-      const requestParamsValue = typeof record.requestParams === 'object'
-        ? JSON.stringify(record.requestParams, null, 2)
-        : (record.requestParams || '{}');
+      console.log('openModal - record:', record);
 
-      form.setFieldsValue({
-        ...record,
-        requestHeaders: requestHeadersValue,
-        requestParams: requestParamsValue,
-        requestBody: record.requestBody ? JSON.stringify(record.requestBody, null, 2) : '{}',
-        responseBody: record.responseBody ? JSON.stringify(record.responseBody, null, 2) : '{}',
-        responseExample: record.responseExample ? JSON.stringify(record.responseExample, null, 2) : '{}',
-        exampleCode: record.exampleCode ? JSON.stringify(record.exampleCode, null, 2) : '{}',
-      });
+      // 解析 JSON 字段为对象，如果解析失败则使用空对象
+      const parseJsonField = (jsonStr: any) => {
+        // null 或 undefined 返回 null，让编辑器显示为空
+        if (jsonStr === null || jsonStr === undefined) return null;
+        // 空字符串返回 null
+        if (jsonStr === '') return null;
+        // 已经是对象直接返回
+        if (typeof jsonStr === 'object') return jsonStr;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          return typeof parsed === 'object' ? parsed : {};
+        } catch {
+          // 解析失败，返回 null
+          return null;
+        }
+      };
+
+      const formValues = {
+        version: record.version || '',
+        httpMethod: record.httpMethod || 'GET',
+        path: record.path || '',
+        current: record.current || false,
+        allowInvoke: record.allowInvoke !== undefined ? record.allowInvoke : true,
+        authType: record.authType || 'NONE',
+        requestHeaders: parseJsonField(record.requestHeaders),
+        requestParams: parseJsonField(record.requestParams),
+        requestBody: parseJsonField(record.requestBody),
+        responseBody: parseJsonField(record.responseBody),
+        responseExample: parseJsonField(record.responseExample),
+        exampleCode: parseJsonField(record.exampleCode),
+      };
+      console.log('openModal - formValues:', formValues);
+
+      form.setFieldsValue(formValues);
     } else {
       setEditingVersion(null);
       form.resetFields();
@@ -258,14 +415,7 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
       render: (_, record) => (
         <Space>
           {!record.current && (
-            <Popconfirm
-              title="确定设为当前版本吗？"
-              onConfirm={() => handleSetCurrent(record)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <a>设为当前</a>
-            </Popconfirm>
+            <a onClick={() => handleSetCurrent(record)}>设为当前</a>
           )}
           <a onClick={() => openModal(record)}>编辑</a>
           {!record.current && (
@@ -327,8 +477,12 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
             name="version"
             label="版本号"
             rules={[{ required: true, message: '请输入版本号' }]}
+            tooltip={editingVersion ? "编辑模式下版本号不可修改，如需新版本号请创建新版本" : ""}
           >
-            <Input placeholder="例如: v1.0" />
+            <Input
+              placeholder="例如: v1.0"
+              disabled={!!editingVersion}
+            />
           </Form.Item>
 
           <Form.Item
@@ -377,51 +531,56 @@ const ApiVersionTab: React.FC<ApiVersionTabProps> = ({
           <Form.Item
             name="requestHeaders"
             label="请求头 (JSON)"
-            rules={[
-              {
-                validator: async (_, value) => {
-                  if (!value) return;
-                  try {
-                    JSON.parse(value);
-                  } catch {
-                    throw new Error('请输入有效的 JSON');
-                  }
-                },
-              },
-            ]}
+            getValueProps={(value) => ({ value })}
           >
-            <Input.TextArea rows={3} placeholder='{"Content-Type": "application/json"}' />
+            <JsonEditor
+              placeholder='{"Content-Type": "application/json"}'
+              rows={3}
+            />
           </Form.Item>
 
           <Form.Item
             name="requestParams"
             label="请求参数 (JSON)"
-            rules={[
-              {
-                validator: async (_, value) => {
-                  if (!value) return;
-                  try {
-                    JSON.parse(value);
-                  } catch {
-                    throw new Error('请输入有效的 JSON');
-                  }
-                },
-              },
-            ]}
+            getValueProps={(value) => ({ value })}
           >
-            <Input.TextArea rows={3} placeholder='{"param1": {"type": "string", "required": true}}' />
+            <JsonEditor
+              placeholder='{"param1": {"type": "string", "required": true}}'
+              rows={3}
+            />
           </Form.Item>
 
-          <Form.Item name="requestBody" label="请求体结构 (JSON)">
-            <Input.TextArea rows={3} placeholder='{"name": "string", "age": "number"}' />
+          <Form.Item
+            name="requestBody"
+            label="请求体结构 (JSON)"
+            getValueProps={(value) => ({ value })}
+          >
+            <JsonEditor
+              placeholder='{"name": "string", "age": "number"}'
+              rows={3}
+            />
           </Form.Item>
 
-          <Form.Item name="responseBody" label="响应体结构 (JSON)">
-            <Input.TextArea rows={3} placeholder='{"code": 0, "data": {}}' />
+          <Form.Item
+            name="responseBody"
+            label="响应体结构 (JSON)"
+            getValueProps={(value) => ({ value })}
+          >
+            <JsonEditor
+              placeholder='{"code": 0, "data": {}}'
+              rows={3}
+            />
           </Form.Item>
 
-          <Form.Item name="responseExample" label="响应示例 (JSON)">
-            <Input.TextArea rows={3} placeholder='{"code": 0, "data": {}, "message": "success"}' />
+          <Form.Item
+            name="responseExample"
+            label="响应示例 (JSON)"
+            getValueProps={(value) => ({ value })}
+          >
+            <JsonEditor
+              placeholder='{"code": 0, "data": {}, "message": "success"}'
+              rows={3}
+            />
           </Form.Item>
         </Form>
       </Modal>

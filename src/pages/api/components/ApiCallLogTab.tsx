@@ -3,8 +3,10 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useState, useRef, useEffect } from 'react';
 import type { ActionType } from '@ant-design/pro-components';
+import { useRequest } from '@umijs/max';
 import { createTimeColumn } from '@/components/CrudTable';
 import { searchInterfaceCallLog } from '@/services/api-gateway/interfaceCallLogController';
+import { searchInterfaceVersion } from '@/services/api-gateway/interfaceVersionController';
 
 interface ApiCallLogTabProps {
   interfaceId: number;
@@ -17,6 +19,33 @@ const ApiCallLogTab: React.FC<ApiCallLogTabProps> = ({ interfaceId }) => {
   const actionRef = useRef<ActionType>();
   const [versionFilter, setVersionFilter] = useState<number | undefined>();
   const [statusFilter, setStatusFilter] = useState<boolean | undefined>();
+
+  // 获取接口版本列表
+  const { data: versionsData } = useRequest(
+    () =>
+      searchInterfaceVersion({
+        page: 1,
+        size: 100,
+        request: {
+          apiId: interfaceId,
+        },
+      }),
+    {
+      ready: !!interfaceId,
+      refreshDeps: [interfaceId],
+      onError: () => {
+        // 静默处理
+      },
+    },
+  ) as { data: any };
+
+  const versions = Array.isArray(versionsData) ? versionsData : (versionsData?.data || []);
+
+  // 版本选项
+  const versionOptions = versions.map((v: any) => ({
+    value: v.id,
+    label: `${v.version}${v.current ? ' (当前)' : ''}`,
+  }));
 
   // 当 interfaceId 变化时刷新表格
   useEffect(() => {
@@ -129,15 +158,11 @@ const ApiCallLogTab: React.FC<ApiCallLogTabProps> = ({ interfaceId }) => {
       extra={
         <Space>
           <Select
-            style={{ width: 120 }}
+            style={{ width: 150 }}
             placeholder="筛选版本"
             allowClear
             onChange={setVersionFilter}
-            options={[
-              // TODO: 从接口版本列表获取选项
-              { value: 1, label: 'v1.0' },
-              { value: 2, label: 'v1.1' },
-            ]}
+            options={versionOptions}
           />
           <Select
             style={{ width: 100 }}

@@ -1,7 +1,7 @@
 import { useRequest, useModel } from '@umijs/max';
 import { Tree, Card, Input, Empty, Spin, Button, Modal, Form, message, Space, Popconfirm } from 'antd';
-import type { DataNode, TreeProps } from 'antd';
-import { useState, useMemo, useCallback } from 'react';
+import type { TreeProps } from 'antd';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { searchInterfaces, create, deleteUsingDelete } from '@/services/api-gateway/interfaceController';
 import {
   FolderOutlined,
@@ -14,7 +14,17 @@ import {
 interface ApiTreeProps {
   onSelectInterface: (interfaceId: number) => void;
   selectedInterfaceId: number | null;
+  onWidthChange?: (width: number) => void;
 }
+
+// 计算文本宽度的辅助函数
+const measureTextWidth = (text: string, fontSize: number = 14): number => {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  if (!context) return 0;
+  context.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
+  return context.measureText(text).width;
+};
 
 /**
  * 左侧接口树组件
@@ -23,9 +33,11 @@ interface ApiTreeProps {
 const ApiTree: React.FC<ApiTreeProps> = ({
   onSelectInterface,
   selectedInterfaceId,
+  onWidthChange,
 }) => {
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+  const [isAllExpanded, setIsAllExpanded] = useState(false);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [form] = Form.useForm();
   const { initialState } = useModel('@@initialState');
@@ -48,7 +60,7 @@ const ApiTree: React.FC<ApiTreeProps> = ({
         // 静默处理错误
       },
     },
-  );
+  ) as { data: any; loading: boolean; run: () => void };
 
   // 按分类分组接口
   const groupedData = useMemo(() => {
@@ -67,8 +79,40 @@ const ApiTree: React.FC<ApiTreeProps> = ({
     return groups;
   }, [data]);
 
+  // 计算树的最大宽度并通知父组件
+  useEffect(() => {
+    if (!data || (Array.isArray(data) ? data : data?.data || []).length === 0) {
+      return;
+    }
+
+    const interfaces = Array.isArray(data) ? data : data?.data || [];
+    let maxWidth = 0;
+
+    // 计算所有分类名称和接口名称的宽度
+    Object.entries(groupedData).forEach(([category, items]: [string, any[]]) => {
+      // 分类名称宽度: 图标(24px) + 分类名 + 数量
+      const categoryText = `${category} (${items.length})`;
+      const categoryWidth = 24 + 8 + measureTextWidth(categoryText, 14);
+      maxWidth = Math.max(maxWidth, categoryWidth);
+
+      // 接口名称宽度: 图标(16px) + 间距(8px) + 接口名 + 删除按钮(20px) + 间距
+      items.forEach((item) => {
+        const nameWidth = 16 + 8 + measureTextWidth(item.name || '', 14) + 20 + 8;
+        maxWidth = Math.max(maxWidth, nameWidth);
+      });
+    });
+
+    // 添加内边距和搜索框等额外空间
+    const totalWidth = maxWidth + 48; // 48px 为左右内边距
+
+    // 限制宽度范围: 最小 200px，最大 400px
+    const finalWidth = Math.max(200, Math.min(400, totalWidth));
+
+    onWidthChange?.(finalWidth);
+  }, [groupedData, onWidthChange]);
+
   // 过滤并转换为 Tree 数据
-  const treeData = useMemo(() => {
+  const treeData: any[] = useMemo(() => {
     const searchLower = searchValue.toLowerCase();
 
     return Object.entries(groupedData)
@@ -84,23 +128,14 @@ const ApiTree: React.FC<ApiTreeProps> = ({
 
         return {
           title: (
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                const key = `category-${category}`;
-                const newExpandedKeys = expandedKeys.includes(key)
-                  ? expandedKeys.filter(k => k !== key)
-                  : [...expandedKeys, key];
-                setExpandedKeys(newExpandedKeys);
-              }}
-              style={{ cursor: 'pointer' }}
-            >
-              {category} ({filteredItems.length})
-            </span>
+            <div style={{ width: '100%', display: 'flex', alignItems: 'center' }}>
+              <FolderOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+              <span>{category} ({filteredItems.length})</span>
+            </div>
           ),
           key: `category-${category}`,
-          selectable: false,
-          icon: <FolderOutlined />,
+          selectable: true,
+          isLeaf: false,
           children: filteredItems.map((item: any) => ({
             title: (
               <div
@@ -138,9 +173,9 @@ const ApiTree: React.FC<ApiTreeProps> = ({
             isLeaf: true,
             data: item,
           })),
-        };
+        } as any;
       })
-      .filter((node) => node.children && node.children.length > 0);
+      .filter((node: any) => node.children && node.children.length > 0);
     // 调试：打印树数据
     console.log('ApiTree - treeData:', treeData);
     console.log('ApiTree - groupedData:', groupedData);
@@ -150,15 +185,31 @@ const ApiTree: React.FC<ApiTreeProps> = ({
   // 展开所有包含选中项的父节点
   const handleExpand: TreeProps['onExpand'] = (expandedKeysValue) => {
     setExpandedKeys(expandedKeysValue);
+    // 同步更新全部展开状态
+    const allKeys = treeData.map((node: any) => node.key);
+    setIsAllExpanded(expandedKeysValue.length === allKeys.length && allKeys.length > 0);
   };
 
-  // 选中接口
-  const handleSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
-    if (info.node.isLeaf) {
-      const interfaceId = info.node.data?.id;
-      if (interfaceId) {
-        onSelectInterface(interfaceId);
-      }
+  // 选中节点（分类节点展开/折叠，接口节点选中）
+  const handleSelect: TreeProps['onSelect'] = (selectedKeys, info: any) => {
+    // 分类节点：展开/折叠
+    if (!info.node.isLeaf) {
+      const key = info.node.key as string;
+      const newExpandedKeys = expandedKeys.includes(key)
+        ? expandedKeys.filter(k => k !== key)
+        : [...expandedKeys, key];
+      setExpandedKeys(newExpandedKeys);
+      // 同步更新全部展开状态
+      const allKeys = treeData.map((node: any) => node.key);
+      setIsAllExpanded(newExpandedKeys.length === allKeys.length && allKeys.length > 0);
+      // 清除分类节点的选中状态
+      info.node.selected = false;
+      return;
+    }
+    // 接口节点：选中
+    const interfaceId = info.node.data?.id;
+    if (interfaceId) {
+      onSelectInterface(interfaceId);
     }
   };
 
@@ -178,11 +229,18 @@ const ApiTree: React.FC<ApiTreeProps> = ({
     }
   }, [selectedInterfaceId, refetch, messageApi, onSelectInterface]);
 
-  // 自动展开所有分类
-  const expandAll = useCallback(() => {
-    const allKeys = treeData.map((node) => node.key);
-    setExpandedKeys(allKeys);
-  }, [treeData]);
+  // 切换展开/折叠所有分类
+  const toggleExpandAll = useCallback(() => {
+    const allKeys = treeData.map((node: any) => node.key);
+    if (isAllExpanded) {
+      // 折叠所有
+      setExpandedKeys([]);
+    } else {
+      // 展开所有
+      setExpandedKeys(allKeys);
+    }
+    setIsAllExpanded(!isAllExpanded);
+  }, [treeData, isAllExpanded]);
 
   // 打开新建弹窗
   const openCreateModal = useCallback(() => {
@@ -227,8 +285,8 @@ const ApiTree: React.FC<ApiTreeProps> = ({
             >
               新建
             </Button>
-            <a onClick={expandAll} style={{ fontSize: 12 }}>
-              展开
+            <a onClick={toggleExpandAll} style={{ fontSize: 12 }}>
+              {isAllExpanded ? '折叠' : '展开'}
             </a>
           </Space>
         }
@@ -254,7 +312,7 @@ const ApiTree: React.FC<ApiTreeProps> = ({
           />
         ) : (
           <Tree
-            showIcon
+            showIcon={false}
             expandedKeys={expandedKeys}
             selectedKeys={
               selectedInterfaceId
@@ -264,10 +322,6 @@ const ApiTree: React.FC<ApiTreeProps> = ({
             onExpand={handleExpand}
             onSelect={handleSelect}
             treeData={treeData}
-            switcherIcons={[
-              <FolderOpenOutlined key="open" />,
-              <FolderOutlined key="close" />,
-            ]}
             blockNode
           />
         )}

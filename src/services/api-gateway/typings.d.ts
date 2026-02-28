@@ -91,10 +91,13 @@ declare namespace API {
   };
 
   type InterfaceCreateDto = {
+    /** 接口名称 */
     name: string;
+    /** 接口描述 */
     description?: string;
     /** 接口分类 */
     category?: string;
+    /** 接口所有者 */
     owner: string;
   };
 
@@ -428,6 +431,10 @@ declare namespace API {
   type interfaceUpdateParams = {
     /** 接口ID */
     id: number;
+  };
+
+  type User = {
+    username?: string;
   };
 
   type UserQueryDto = {

@@ -42,6 +42,14 @@ export const errorConfig: RequestConfig = {
     // 错误接收及处理
     errorHandler: (error: any, opts: any) => {
       if (opts?.skipErrorHandler) throw error;
+
+      // 处理 401 未授权错误
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        message.warning('登录已过期，请重新登录');
+        history.push('/user/login');
+        return;
+      }
+
       // 我们的 errorThrower 抛出的错误。
       if (error.name === 'BizError') {
         const errorInfo: ResponseStructure | undefined = error.info;
@@ -102,10 +110,12 @@ export const errorConfig: RequestConfig = {
   // 响应拦截器
   responseInterceptors: [
     (response) => {
-      // 拦截响应数据，进行个性化处理
+      // 统一处理 401 未授权错误，重定向到登录页
       if (response.status === 401) {
+        message.warning('登录已过期，请重新登录');
         history.push('/user/login');
-        return response;
+        // 返回一个被中断的响应，防止后续处理
+        return { ...response, _401_redirected: true } as any;
       }
 
       const { data } = response as unknown as ResponseStructure;

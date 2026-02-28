@@ -1,5 +1,6 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Col, Row } from 'antd';
+import { Card, Col, Row, Button } from 'antd';
+import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import React, { useState } from 'react';
 import ApiTree from '../components/ApiTree';
 import ApiDetailTabs from '../components/ApiDetailTabs';
@@ -16,6 +17,8 @@ const Workspace: React.FC = () => {
   const [selectedVersionId, setSelectedVersionId] = useState<number | null>(
     null,
   );
+  const [isTreeCollapsed, setIsTreeCollapsed] = useState(false);
+  const [treeWidth, setTreeWidth] = useState<number>(200); // 默认最小宽度
 
   const handleSelectInterface = (interfaceId: number) => {
     setSelectedInterfaceId(interfaceId);
@@ -26,19 +29,53 @@ const Workspace: React.FC = () => {
     setSelectedVersionId(versionId);
   };
 
+  // 计算折叠按钮位置
+  const buttonLeftPosition = isTreeCollapsed ? 16 : treeWidth + 8;
+
   return (
     <PageContainer title={false}>
       <Row gutter={16} style={{ height: 'calc(100vh - 150px)' }}>
         {/* 左侧接口树 */}
-        <Col span={6} style={{ height: '100%' }}>
-          <ApiTree
-            onSelectInterface={handleSelectInterface}
-            selectedInterfaceId={selectedInterfaceId}
+        {!isTreeCollapsed && (
+          <Col
+            flex={`0 0 ${treeWidth}px`}
+            style={{ height: '100%', transition: 'all 0.2s', minWidth: 200, maxWidth: 400 }}
+          >
+            <ApiTree
+              onSelectInterface={handleSelectInterface}
+              selectedInterfaceId={selectedInterfaceId}
+              onWidthChange={setTreeWidth}
+            />
+          </Col>
+        )}
+
+        {/* 折叠/展开按钮 */}
+        <div
+          style={{
+            position: 'absolute',
+            left: buttonLeftPosition,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            transition: 'left 0.2s',
+          }}
+        >
+          <Button
+            type="text"
+            icon={isTreeCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setIsTreeCollapsed(!isTreeCollapsed)}
+            style={{
+              border: '1px solid #d9d9d9',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}
           />
-        </Col>
+        </div>
 
         {/* 右侧详情面板 */}
-        <Col span={18} style={{ height: '100%', overflowY: 'auto' }}>
+        <Col
+          flex={isTreeCollapsed ? '1' : `1 1 calc(100% - ${treeWidth}px - 64px)`}
+          style={{ height: '100%', overflowY: 'auto', transition: 'all 0.2s' }}
+        >
           {selectedInterfaceId ? (
             <ApiDetailTabs
               interfaceId={selectedInterfaceId}
