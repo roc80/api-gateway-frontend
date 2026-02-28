@@ -1,8 +1,25 @@
 import { useRequest } from '@umijs/max';
-import { Form, Input, Button, Card, Tag, Alert, Space, Empty, Spin, Select, message, Modal } from 'antd';
-import { useState, useEffect, useRef } from 'react';
+import {
+  Alert,
+  Button,
+  Card,
+  Empty,
+  Form,
+  Input,
+  Modal,
+  message,
+  Select,
+  Space,
+  Spin,
+  Tag,
+} from 'antd';
+import { useEffect, useRef, useState } from 'react';
 import { getById, invoke } from '@/services/api-gateway/interfaceController';
-import { searchInterfaceVersion, createInterfaceVersion, updateInterfaceVersion } from '@/services/api-gateway/interfaceVersionController';
+import {
+  createInterfaceVersion,
+  searchInterfaceVersion,
+  updateInterfaceVersion,
+} from '@/services/api-gateway/interfaceVersionController';
 
 // TODO: 后端需要提供在线调用接口
 // POST /interfaces/{id}/invoke
@@ -29,7 +46,9 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
   const [responseData, setResponseData] = useState<any>(null);
   const [responseStatus, setResponseStatus] = useState<number | null>(null);
   const [duration, setDuration] = useState<number>(0);
-  const [selectedVersionId, setSelectedVersionId] = useState<number | null>(propVersionId);
+  const [selectedVersionId, setSelectedVersionId] = useState<number | null>(
+    propVersionId,
+  );
   const [isSaveModalVisible, setIsSaveModalVisible] = useState(false);
   const initialVersionRef = useRef<any>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -44,7 +63,11 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
   );
 
   // 获取所有版本
-  const { data: versionsData, loading: versionsLoading, refresh: refreshVersions } = useRequest(
+  const {
+    data: versionsData,
+    loading: versionsLoading,
+    refresh: refreshVersions,
+  } = useRequest(
     () =>
       searchInterfaceVersion({
         page: 1,
@@ -59,10 +82,13 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
     },
   ) as { data: any; loading: boolean; refresh: () => void };
 
-  const versions = Array.isArray(versionsData) ? versionsData : (versionsData?.data || []);
+  const versions = Array.isArray(versionsData)
+    ? versionsData
+    : versionsData?.data || [];
 
   // 当前选中的版本 - 优先选择 current:true 的版本
-  const currentVersion = versions.find((v: any) => v.current) ||
+  const currentVersion =
+    versions.find((v: any) => v.current) ||
     versions.find((v: any) => v.id === selectedVersionId) ||
     versions[0];
 
@@ -115,7 +141,9 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
     if (initialVersionRef.current) {
       const currentValues = form.getFieldsValue();
       const changed = Object.keys(initialVersionRef.current).some(
-        (key) => JSON.stringify(initialVersionRef.current[key]) !== JSON.stringify(currentValues[key])
+        (key) =>
+          JSON.stringify(initialVersionRef.current[key]) !==
+          JSON.stringify(currentValues[key]),
       );
       setHasChanges(changed);
     }
@@ -167,9 +195,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
         timestamp: new Date().toISOString(),
       };
 
-      const response = await invoke({
-        username: JSON.stringify(requestData),
-      });
+      const response = await invoke(requestData.requestBody);
 
       setResponseStatus(200);
       setResponseData(response);
@@ -232,7 +258,12 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
         if (v.current) {
           await updateInterfaceVersion(
             { id: v.id },
-            { current: false, httpMethod: v.httpMethod, path: v.path, allowInvoke: v.allowInvoke },
+            {
+              current: false,
+              httpMethod: v.httpMethod,
+              path: v.path,
+              allowInvoke: v.allowInvoke,
+            },
           );
         }
       }
@@ -240,7 +271,12 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
       // 将新版本设为当前版本
       await updateInterfaceVersion(
         { id: newVersion.id },
-        { current: true, httpMethod: formValues.httpMethod, path: formValues.path, allowInvoke: true },
+        {
+          current: true,
+          httpMethod: formValues.httpMethod,
+          path: formValues.path,
+          allowInvoke: true,
+        },
       );
 
       message.success('保存成功，新版本已创建并设为当前版本');
@@ -329,27 +365,33 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
       )}
 
       {/* 编辑表单 */}
-      <Form
-        form={form}
-        layout="vertical"
-        onValuesChange={handleFormChange}
-      >
+      <Form form={form} layout="vertical" onValuesChange={handleFormChange}>
         {/* 请求方法和路径 + 按钮 - Knife4j 风格 */}
         <Card size="small" style={{ marginBottom: 16 }}>
-          <Space.Compact style={{ width: '100%', display: 'flex', alignItems: 'flex-start' }}>
+          <Space.Compact
+            style={{ width: '100%', display: 'flex', alignItems: 'flex-start' }}
+          >
             <Form.Item
               name="httpMethod"
               style={{ marginBottom: 0 }}
               rules={[{ required: true, message: '请选择请求方法' }]}
             >
-              <Select
-                style={{ width: 100 }}
-              >
-                <Select.Option value="GET"><Tag color="green">GET</Tag></Select.Option>
-                <Select.Option value="POST"><Tag color="blue">POST</Tag></Select.Option>
-                <Select.Option value="PUT"><Tag color="orange">PUT</Tag></Select.Option>
-                <Select.Option value="DELETE"><Tag color="red">DELETE</Tag></Select.Option>
-                <Select.Option value="PATCH"><Tag color="purple">PATCH</Tag></Select.Option>
+              <Select style={{ width: 100 }}>
+                <Select.Option value="GET">
+                  <Tag color="green">GET</Tag>
+                </Select.Option>
+                <Select.Option value="POST">
+                  <Tag color="blue">POST</Tag>
+                </Select.Option>
+                <Select.Option value="PUT">
+                  <Tag color="orange">PUT</Tag>
+                </Select.Option>
+                <Select.Option value="DELETE">
+                  <Tag color="red">DELETE</Tag>
+                </Select.Option>
+                <Select.Option value="PATCH">
+                  <Tag color="purple">PATCH</Tag>
+                </Select.Option>
               </Select>
             </Form.Item>
 
@@ -369,9 +411,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
             >
               发送请求
             </Button>
-            <Button onClick={() => form.resetFields()}>
-              重置
-            </Button>
+            <Button onClick={() => form.resetFields()}>重置</Button>
           </Space.Compact>
           {hasChanges && (
             <div style={{ marginTop: 12 }}>
@@ -434,7 +474,11 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
         </Card>
 
         {/* 请求体 */}
-        <Card title="请求体结构 (JSON)" size="small" style={{ marginBottom: 16 }}>
+        <Card
+          title="请求体结构 (JSON)"
+          size="small"
+          style={{ marginBottom: 16 }}
+        >
           <Form.Item
             name="requestBody"
             rules={[
