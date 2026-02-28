@@ -96,6 +96,7 @@ export async function batchDeleteInterfaces(
 }
 
 /** 模拟API 传输用户，返回该用户的名称 POST /interfaces/invoke/mock/name */
+// todo@lp 暂时写死接口url
 export async function invoke(body: API.User, options?: { [key: string]: any }) {
   return request<Record<string, any>>("/interfaces/invoke/mock/name", {
     method: "POST",

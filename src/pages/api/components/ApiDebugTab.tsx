@@ -21,7 +21,7 @@ import {
   updateInterfaceVersion,
 } from '@/services/api-gateway/interfaceVersionController';
 
-// TODO: 后端需要提供在线调用接口
+// TODO@lp: 后端需要提供在线调用接口
 // POST /interfaces/{id}/invoke
 // Request: { versionId: Long, requestParams: Map, requestBody: Map }
 // Response: ApiResponse
@@ -195,6 +195,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
         timestamp: new Date().toISOString(),
       };
 
+      // todo@lp 暂时只传requestBody
       const response = await invoke(requestData.requestBody);
 
       setResponseStatus(200);

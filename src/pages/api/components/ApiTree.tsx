@@ -81,35 +81,42 @@ const ApiTree: React.FC<ApiTreeProps> = ({
 
   // 计算树的最大宽度并通知父组件
   useEffect(() => {
-    if (!data || (Array.isArray(data) ? data : data?.data || []).length === 0) {
-      return;
-    }
-
-    const interfaces = Array.isArray(data) ? data : data?.data || [];
     let maxWidth = 0;
 
-    // 计算所有分类名称和接口名称的宽度
-    Object.entries(groupedData).forEach(([category, items]: [string, any[]]) => {
-      // 分类名称宽度: 图标(24px) + 分类名 + 数量
-      const categoryText = `${category} (${items.length})`;
-      const categoryWidth = 24 + 8 + measureTextWidth(categoryText, 14);
-      maxWidth = Math.max(maxWidth, categoryWidth);
+    // 1. 标题区域宽度: "接口列表" + 按钮(新建 + 展开)
+    const titleWidth = measureTextWidth('接口列表', 14);
+    const buttonsWidth = 60 + 60 + 8; // 新建按钮 + 展开按钮 + 间距
+    const headerAreaWidth = titleWidth + buttonsWidth;
+    maxWidth = Math.max(maxWidth, headerAreaWidth);
 
-      // 接口名称宽度: 图标(16px) + 间距(8px) + 接口名 + 删除按钮(20px) + 间距
-      items.forEach((item) => {
-        const nameWidth = 16 + 8 + measureTextWidth(item.name || '', 14) + 20 + 8;
-        maxWidth = Math.max(maxWidth, nameWidth);
+    // 2. 搜索框宽度: placeholder 文本
+    const searchPlaceholderWidth = measureTextWidth('搜索接口名称或标识', 14);
+    maxWidth = Math.max(maxWidth, searchPlaceholderWidth);
+
+    // 3. 树节点内容宽度
+    if (data && (Array.isArray(data) ? data : data?.data || []).length > 0) {
+      Object.entries(groupedData).forEach(([category, items]: [string, any[]]) => {
+        // 分类名称宽度: 图标(24px) + 分类名 + 数量
+        const categoryText = `${category} (${items.length})`;
+        const categoryWidth = 24 + 8 + measureTextWidth(categoryText, 14);
+        maxWidth = Math.max(maxWidth, categoryWidth);
+
+        // 接口名称宽度: 图标(16px) + 间距(8px) + 接口名 + 删除按钮(20px) + 间距
+        items.forEach((item) => {
+          const nameWidth = 16 + 8 + measureTextWidth(item.name || '', 14) + 20 + 8;
+          maxWidth = Math.max(maxWidth, nameWidth);
+        });
       });
-    });
+    }
 
-    // 添加内边距和搜索框等额外空间
+    // 添加内边距
     const totalWidth = maxWidth + 48; // 48px 为左右内边距
 
-    // 限制宽度范围: 最小 200px，最大 400px
-    const finalWidth = Math.max(200, Math.min(400, totalWidth));
+    // 限制宽度范围: 最小 200px，最大 500px
+    const finalWidth = Math.max(200, Math.min(500, totalWidth));
 
     onWidthChange?.(finalWidth);
-  }, [groupedData, onWidthChange]);
+  }, [groupedData, onWidthChange, data]);
 
   // 过滤并转换为 Tree 数据
   const treeData: any[] = useMemo(() => {
@@ -278,16 +285,20 @@ const ApiTree: React.FC<ApiTreeProps> = ({
         extra={
           <Space size="small">
             <Button
-              type="primary"
               size="small"
               icon={<PlusOutlined />}
               onClick={openCreateModal}
+              style={{ borderColor: '#1890ff', color: '#1890ff' }}
             >
               新建
             </Button>
-            <a onClick={toggleExpandAll} style={{ fontSize: 12 }}>
+            <Button
+              size="small"
+              onClick={toggleExpandAll}
+              style={{ borderColor: '#1890ff', color: '#1890ff' }}
+            >
               {isAllExpanded ? '折叠' : '展开'}
-            </a>
+            </Button>
           </Space>
         }
       >
