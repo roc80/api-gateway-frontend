@@ -11,6 +11,7 @@ import {
   Select,
   Space,
   Spin,
+  Tabs,
   Tag,
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
@@ -201,7 +202,6 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
       setResponseStatus(200);
       setResponseData(response);
       setDuration(Date.now() - startTime);
-      message.success('请求成功');
     } catch (error: any) {
       // 提取错误信息，优先显示 detail 字段
       let errorMsg = '请求失败';
@@ -426,80 +426,91 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
           )}
         </Card>
 
-        {/* 请求头 */}
-        <Card title="请求头 (JSON)" size="small" style={{ marginBottom: 16 }}>
-          <Form.Item
-            name="requestHeaders"
-            rules={[
+        {/* 请求配置 Tab */}
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Tabs
+            defaultActiveKey="headers"
+            items={[
               {
-                validator: async (_, value) => {
-                  if (!value) return;
-                  try {
-                    JSON.parse(value);
-                  } catch {
-                    throw new Error('请输入有效的 JSON');
-                  }
-                },
+                key: 'headers',
+                label: '请求头',
+                children: (
+                  <Form.Item
+                    name="requestHeaders"
+                    rules={[
+                      {
+                        validator: async (_, value) => {
+                          if (!value) return;
+                          try {
+                            JSON.parse(value);
+                          } catch {
+                            throw new Error('请输入有效的 JSON');
+                          }
+                        },
+                      },
+                    ]}
+                  >
+                    <Input.TextArea
+                      style={{ height: 200 }}
+                      placeholder='{"Content-Type": "application/json"}'
+                    />
+                  </Form.Item>
+                ),
+              },
+              {
+                key: 'params',
+                label: '请求参数',
+                children: (
+                  <Form.Item
+                    name="requestParams"
+                    rules={[
+                      {
+                        validator: async (_, value) => {
+                          if (!value) return;
+                          try {
+                            JSON.parse(value);
+                          } catch {
+                            throw new Error('请输入有效的 JSON');
+                          }
+                        },
+                      },
+                    ]}
+                  >
+                    <Input.TextArea
+                      style={{ height: 200 }}
+                      placeholder='{"param1": {"type": "string", "required": true, "description": "参数1"}}'
+                    />
+                  </Form.Item>
+                ),
+              },
+              {
+                key: 'body',
+                label: '请求体',
+                children: (
+                  <Form.Item
+                    name="requestBody"
+                    rules={[
+                      {
+                        validator: async (_, value) => {
+                          if (!value) return;
+                          try {
+                            JSON.parse(value);
+                          } catch {
+                            throw new Error('请输入有效的 JSON');
+                          }
+                        },
+                      },
+                    ]}
+                  >
+                    <Input.TextArea
+                      style={{ height: 200 }}
+                      placeholder='{"name": "string", "age": "number"}'
+                    />
+                  </Form.Item>
+                ),
               },
             ]}
-          >
-            <Input.TextArea
-              rows={4}
-              placeholder='{"Content-Type": "application/json"}'
-            />
-          </Form.Item>
-        </Card>
-
-        {/* 请求参数 */}
-        <Card title="请求参数 (JSON)" size="small" style={{ marginBottom: 16 }}>
-          <Form.Item
-            name="requestParams"
-            rules={[
-              {
-                validator: async (_, value) => {
-                  if (!value) return;
-                  try {
-                    JSON.parse(value);
-                  } catch {
-                    throw new Error('请输入有效的 JSON');
-                  }
-                },
-              },
-            ]}
-          >
-            <Input.TextArea
-              rows={4}
-              placeholder='{"param1": {"type": "string", "required": true, "description": "参数1"}}'
-            />
-          </Form.Item>
-        </Card>
-
-        {/* 请求体 */}
-        <Card
-          title="请求体结构 (JSON)"
-          size="small"
-          style={{ marginBottom: 16 }}
-        >
-          <Form.Item
-            name="requestBody"
-            rules={[
-              {
-                validator: async (_, value) => {
-                  if (!value) return;
-                  try {
-                    JSON.parse(value);
-                  } catch {
-                    throw new Error('请输入有效的 JSON');
-                  }
-                },
-              },
-            ]}
-          >
-            <Input.TextArea
-              rows={6}
-              placeholder='{"name": "string", "age": "number"}'
-            />
-          </Form.Item>
+          />
         </Card>
       </Form>
 
