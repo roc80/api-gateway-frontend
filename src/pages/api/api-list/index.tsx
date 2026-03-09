@@ -1,6 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProFormText } from '@ant-design/pro-components';
-import { useModel, useRequest, history } from '@umijs/max';
+import { history, useModel, useRequest } from '@umijs/max';
 import { message, Popconfirm, theme } from 'antd';
 import React, { useCallback } from 'react';
 import { CrudForm, CrudTable, updateTimeColumn } from '@/components/CrudTable';
@@ -194,12 +194,6 @@ const ApiList: React.FC = () => {
                 {record.enabled ? '禁用' : '启用'}
               </a>
             </Popconfirm>
-            <a
-              style={{ marginLeft: 8 }}
-              onClick={() => history.push(`/api/debug?interfaceId=${record.id}`)}
-            >
-              在线调用
-            </a>
           </>
         )}
         toolbarActionsRender={(actionRef) => (

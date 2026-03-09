@@ -434,6 +434,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
               {
                 key: 'headers',
                 label: '请求头',
+                forceRender: true,
                 children: (
                   <Form.Item
                     name="requestHeaders"
@@ -460,6 +461,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
               {
                 key: 'params',
                 label: '请求参数',
+                forceRender: true,
                 children: (
                   <Form.Item
                     name="requestParams"
@@ -486,6 +488,7 @@ const ApiDebugTab: React.FC<ApiDebugTabProps> = ({
               {
                 key: 'body',
                 label: '请求体',
+                forceRender: true,
                 children: (
                   <Form.Item
                     name="requestBody"

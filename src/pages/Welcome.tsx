@@ -130,20 +130,6 @@ const Welcome: React.FC = () => {
           >
             API Gateway 是一个 API 网关，用于管理 API 的访问和流量。
           </p>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 16,
-            }}
-          >
-            <InfoCard
-              index={1}
-              href="https://umijs.org/docs/introduce/introduce"
-              title="了解 umi"
-              desc="umi 是一个可扩展的企业级前端应用框架,umi 以路由为基础的，同时支持配置式路由和约定式路由，保证路由的功能完备，并以此进行功能扩展。"
-            />
-          </div>
         </div>
       </Card>
     </PageContainer>

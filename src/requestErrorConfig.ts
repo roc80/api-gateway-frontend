@@ -1,6 +1,5 @@
 ﻿import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
-import { history } from '@umijs/max';
 import { message, notification } from 'antd';
 
 // 错误处理方案： 错误类型
@@ -46,7 +45,10 @@ export const errorConfig: RequestConfig = {
       // 处理 401 未授权错误
       if (error.response?.status === 401 || error.response?.status === 403) {
         message.warning('登录已过期，请重新登录');
-        history.push('/user/login');
+        // 延迟跳转，确保消息有时间显示
+        setTimeout(() => {
+          window.location.replace('/user/login');
+        }, 1000);
         return;
       }
 
@@ -110,14 +112,6 @@ export const errorConfig: RequestConfig = {
   // 响应拦截器
   responseInterceptors: [
     (response) => {
-      // 统一处理 401 未授权错误，重定向到登录页
-      if (response.status === 401) {
-        message.warning('登录已过期，请重新登录');
-        history.push('/user/login');
-        // 返回一个被中断的响应，防止后续处理
-        return { ...response, _401_redirected: true } as any;
-      }
-
       const { data } = response as unknown as ResponseStructure;
       if (data?.success === false) {
         message.error('请求失败！');
