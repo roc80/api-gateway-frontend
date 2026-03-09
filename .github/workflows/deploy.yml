@@ -1,10 +1,9 @@
 name: Deploy to Production
 
-# todo@lp 资源受限，暂不部署
-#on:
-#  push:
-#    branches:
-#      - master
+on:
+  push:
+    branches:
+      - master-deploy
 
 jobs:
   deploy:
